@@ -35,6 +35,7 @@ class Command_Shuffle;
 class Command_Mulligan;
 class Command_RollDie;
 class Command_DrawCards;
+class Command_DrawCryptCards;
 class Command_UndoDraw;
 class Command_FlipCard;
 class Command_AttachCard;
@@ -171,6 +172,7 @@ public:
     void setupZones();
 
     Response::ResponseCode drawCards(GameEventStorage &ges, int number);
+    Response::ResponseCode drawCryptCards(GameEventStorage &ges, int number);
     Response::ResponseCode moveCard(GameEventStorage &ges,
                                     Server_CardZone *startzone,
                                     const QList<const CardToMove *> &_cards,
@@ -204,6 +206,7 @@ public:
     Response::ResponseCode cmdMulligan(const Command_Mulligan &cmd, ResponseContainer &rc, GameEventStorage &ges);
     Response::ResponseCode cmdRollDie(const Command_RollDie &cmd, ResponseContainer &rc, GameEventStorage &ges);
     Response::ResponseCode cmdDrawCards(const Command_DrawCards &cmd, ResponseContainer &rc, GameEventStorage &ges);
+    Response::ResponseCode cmdDrawCryptCards(const Command_DrawCryptCards &cmd, ResponseContainer &rc, GameEventStorage &ges);
     Response::ResponseCode cmdUndoDraw(const Command_UndoDraw &cmd, ResponseContainer &rc, GameEventStorage &ges);
     Response::ResponseCode cmdMoveCard(const Command_MoveCard &cmd, ResponseContainer &rc, GameEventStorage &ges);
     Response::ResponseCode cmdFlipCard(const Command_FlipCard &cmd, ResponseContainer &rc, GameEventStorage &ges);

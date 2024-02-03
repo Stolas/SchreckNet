@@ -13,6 +13,7 @@
 #include "pb/command_del_counter.pb.h"
 #include "pb/command_delete_arrow.pb.h"
 #include "pb/command_draw_cards.pb.h"
+#include "pb/command_draw_crypt_cards.pb.h"
 #include "pb/command_dump_zone.pb.h"
 #include "pb/command_flip_card.pb.h"
 #include "pb/command_game_say.pb.h"
@@ -52,6 +53,7 @@
 #include "pb/event_delete_arrow.pb.h"
 #include "pb/event_destroy_card.pb.h"
 #include "pb/event_draw_cards.pb.h"
+#include "pb/event_draw_crypt_cards.pb.h"
 #include "pb/event_dump_zone.pb.h"
 #include "pb/event_flip_card.pb.h"
 #include "pb/event_game_say.pb.h"
@@ -343,6 +345,12 @@ Response::ResponseCode Server_Player::drawCards(GameEventStorage &ges, int numbe
         deckZone->setCardsBeingLookedAt(currentKnownCards - number);
     }
 
+    return Response::RespOk;
+}
+
+Response::ResponseCode Server_Player::drawCryptCards(GameEventStorage &ges, int number)
+{
+    /* Todo; Draw the Crypt Card. */
     return Response::RespOk;
 }
 
@@ -1088,6 +1096,23 @@ Server_Player::cmdDrawCards(const Command_DrawCards &cmd, ResponseContainer & /*
     }
 
     return drawCards(ges, cmd.number());
+}
+
+Response::ResponseCode
+Server_Player::cmdDrawCryptCards(const Command_DrawCryptCards &cmd, ResponseContainer & /*rc*/, GameEventStorage &ges)
+{
+    if (spectator) {
+        return Response::RespFunctionNotAllowed;
+    }
+
+    if (!game->getGameStarted()) {
+        return Response::RespGameNotStarted;
+    }
+    if (conceded) {
+        return Response::RespContextError;
+    }
+
+    return drawCryptCards(ges, cmd.number());
 }
 
 Response::ResponseCode

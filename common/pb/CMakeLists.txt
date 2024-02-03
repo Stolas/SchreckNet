@@ -22,6 +22,7 @@ set(PROTO_FILES
     command_del_counter.proto
     command_delete_arrow.proto
     command_draw_cards.proto
+    command_draw_crypt_cards.proto
     command_dump_zone.proto
     command_flip_card.proto
     command_game_say.proto
@@ -69,6 +70,7 @@ set(PROTO_FILES
     event_delete_arrow.proto
     event_destroy_card.proto
     event_draw_cards.proto
+    event_draw_crypt_cards.proto
     event_dump_zone.proto
     event_flip_card.proto
     event_game_closed.proto

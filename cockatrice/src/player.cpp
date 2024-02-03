@@ -19,6 +19,7 @@
 #include "pb/command_concede.pb.h"
 #include "pb/command_create_token.pb.h"
 #include "pb/command_draw_cards.pb.h"
+#include "pb/command_draw_crypt_cards.pb.h"
 #include "pb/command_flip_card.pb.h"
 #include "pb/command_game_say.pb.h"
 #include "pb/command_move_card.pb.h"
@@ -40,6 +41,7 @@
 #include "pb/event_delete_arrow.pb.h"
 #include "pb/event_destroy_card.pb.h"
 #include "pb/event_draw_cards.pb.h"
+#include "pb/event_draw_crypt_cards.pb.h"
 #include "pb/event_dump_zone.pb.h"
 #include "pb/event_flip_card.pb.h"
 #include "pb/event_game_say.pb.h"
@@ -236,6 +238,10 @@ Player::Player(const ServerInfo_User &info, int _id, bool _local, bool _judge, T
 
         aDrawCard = new QAction(this);
         connect(aDrawCard, SIGNAL(triggered()), this, SLOT(actDrawCard()));
+        aDrawCards = new QAction(this);
+        connect(aDrawCards, SIGNAL(triggered()), this, SLOT(actDrawCards()));
+        aDrawCryptCard = new QAction(this);
+        connect(aDrawCryptCard, SIGNAL(triggered()), this, SLOT(actCryptDrawCard()));
         aDrawCards = new QAction(this);
         connect(aDrawCards, SIGNAL(triggered()), this, SLOT(actDrawCards()));
         aUndoDraw = new QAction(this);
@@ -1147,6 +1153,14 @@ void Player::actDrawCard()
     sendGameCommand(cmd);
 }
 
+void Player::actDrawCryptCard()
+{
+    Command_DrawCryptCards cmd;
+    cmd.set_number(1);
+    sendGameCommand(cmd);
+}
+
+
 void Player::actMulligan()
 {
     int startSize = SettingsCache::instance().getStartingHandSize();
@@ -1184,6 +1198,20 @@ void Player::actDrawCards()
     if (ok) {
         defaultNumberTopCards = number;
         Command_DrawCards cmd;
+        cmd.set_number(static_cast<google::protobuf::uint32>(number));
+        sendGameCommand(cmd);
+    }
+}
+
+void Player::actDrawCryptCards()
+{
+    int deckSize = zones.value("crypt")->getCards().size();
+    bool ok;
+    int number = QInputDialog::getInt(game, tr("Draw crypt cards"), tr("Number of cards: (max. %1)").arg(deckSize),
+                                      defaultNumberTopCards, 1, deckSize, 1, &ok);
+    if (ok) {
+        defaultNumberTopCards = number;
+        Command_DrawCryptCards cmd;
         cmd.set_number(static_cast<google::protobuf::uint32>(number));
         sendGameCommand(cmd);
     }
@@ -2303,6 +2331,14 @@ void Player::eventDrawCards(const Event_DrawCards &event)
     _hand->reorganizeCards();
     _deck->reorganizeCards();
     emit logDrawCards(this, event.number(), _deck->getCards().size() == 0);
+}
+
+void Player::eventDrawCryptCards(const Event_DrawCryptCards &event)
+{
+    /* Todo; */
+    CardZone *_crypt = zones.value("crypt");
+
+    emit logDrawCryptCards(this, event.number(), _crypt->getCards().size() == 0);
 }
 
 void Player::eventRevealCards(const Event_RevealCards &event)

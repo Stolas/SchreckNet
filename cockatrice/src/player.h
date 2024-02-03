@@ -39,6 +39,7 @@ class Event_DelCounter;
 class Event_DeleteArrow;
 class Event_DestroyCard;
 class Event_DrawCards;
+class Event_DrawCryptCards;
 class Event_DumpZone;
 class Event_FlipCard;
 class Event_GameSay;
@@ -123,6 +124,7 @@ signals:
                         bool _playerTarget);
     void logCreateToken(Player *player, QString cardName, QString pt);
     void logDrawCards(Player *player, int number, bool deckIsEmpty);
+    void logDrawCryptCards(Player *player, int number, bool deckIsEmpty);
     void logUndoDraw(Player *player, QString cardName);
     void logMoveCard(Player *player, CardItem *card, CardZone *startZone, int oldX, CardZone *targetZone, int newX);
     void logFlipCard(Player *player, QString cardName, bool faceDown);
@@ -156,6 +158,8 @@ public slots:
     void actShuffle();
     void actDrawCard();
     void actDrawCards();
+    void actDrawCryptCard();
+    void actDrawCryptCards();
     void actUndoDraw();
     void actMulligan();
     void actMoveTopCardToPlay();
@@ -237,7 +241,7 @@ private:
         *aMoveRfgToBottomLibrary, *aMoveRfgToHand, *aMoveRfgToGrave, *aViewHand, *aViewLibrary, *aViewTopCards,
         *aAlwaysRevealTopCard, *aAlwaysLookAtTopCard, *aOpenDeckInDeckEditor, *aMoveTopCardToGraveyard,
         *aMoveTopCardToExile, *aMoveTopCardsToGraveyard, *aMoveTopCardsToExile, *aMoveTopCardsUntil,
-        *aMoveTopCardToBottom, *aViewGraveyard, *aViewRfg, *aViewSideboard, *aDrawCard, *aDrawCards, *aUndoDraw,
+        *aMoveTopCardToBottom, *aViewGraveyard, *aViewRfg, *aViewSideboard, *aDrawCard, *aDrawCards, *aDrawCryptCard, *aUndoDraw,
         *aMulligan, *aShuffle, *aMoveTopToPlay, *aMoveTopToPlayFaceDown, *aUntapAll, *aRollDie, *aCreateToken,
         *aCreateAnotherToken, *aCardMenu, *aMoveBottomToPlay, *aMoveBottomToPlayFaceDown, *aMoveBottomCardToTop,
         *aMoveBottomCardToGraveyard, *aMoveBottomCardToExile, *aMoveBottomCardsToGraveyard, *aMoveBottomCardsToExile,
@@ -329,6 +333,7 @@ private:
     void eventDestroyCard(const Event_DestroyCard &event);
     void eventAttachCard(const Event_AttachCard &event);
     void eventDrawCards(const Event_DrawCards &event);
+    void eventDrawCryptCards(const Event_DrawCryptCards &event);
     void eventRevealCards(const Event_RevealCards &event);
     void eventChangeZoneProperties(const Event_ChangeZoneProperties &event);
     void cmdSetTopCard(Command_MoveCard &cmd);
