@@ -1,0 +1,11 @@
+Fix Cmake:
+    * "-Zc:__cplusplus -permissive-"
+    * Auto-qtdeploybins
+
+Fix Importer to use Schrecknets
+Fix Draw Crypt Card
+VTES Specific Game Commands:
+    * Influence Crypt Card
+
+Randomize Table Seating on Game Start
+

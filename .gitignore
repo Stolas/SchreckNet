@@ -13,3 +13,5 @@ compile_commands.json
 .vscode/
 .cache
 .gdb_history
+*.sw*
+vcpkg_installed/
