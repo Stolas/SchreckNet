@@ -6,13 +6,6 @@
 #include <carddatabase.h>
 #include <utility>
 
-// many users prefer not to see these sets with non english arts
-// as a solution we remove the date property on these sets
-// that way they will be sorted last by default
-// this will cause their art to not get priority over english cards
-// users will still be able to find these sets and prioritize them manually
-const QStringList nonEnglishSets = {"4BB", "FBB", "PS11", "PSAL", "REN", "RIN"};
-
 class SetToDownload
 {
 private:
@@ -24,6 +17,11 @@ private:
 public:
     const QString &getShortName() const
     {
+        // Todo; SchreckNet might want to have shortnames. Not sure yet.
+        // if (longName.contains("Promo")) {
+        //     shortName = QString("Promo");
+        //     // return new QString("Promo");
+        // }
         return shortName;
     }
     const QString &getLongName() const
@@ -42,15 +40,60 @@ public:
     {
         return releaseDate;
     }
-    SetToDownload(QString _shortName,
-                  QString _longName,
+    SetToDownload(QString _longName,
                   QList<QVariant> _cards,
                   QString _setType = QString(),
                   const QDate &_releaseDate = QDate())
-        : shortName(std::move(_shortName)), longName(std::move(_longName)), cards(std::move(_cards)),
+        : longName(std::move(_longName)), cards(std::move(_cards)),
           releaseDate(_releaseDate), setType(std::move(_setType))
     {
+        /* Schrecknet: To whomever it might concern, yes this is most def not the best way to implement this. */
+        if (longName == "Shadows of Berlin") { shortName = QString("SoB"); return; }
+        if (longName == "Danse Macabre") { shortName = QString("DM");  return; }
+        if (longName == "Anarchs") { shortName = QString(""); return; }
+        if (longName == "Sabbat War") { shortName = QString("SW"); return; }
+        if (longName == "New Blood") { shortName = QString("NB"); return; }
+        if (longName == "Gehenna") { shortName = QString(""); return; }
+        if (longName == "Fall of London") { shortName = QString("FoL"); return; }
+        if (longName == "Ancient Hearts") { shortName = QString("AH"); return; }
+        if (longName == "Lords of the Night") { shortName = QString("LotN"); return; }
+        if (longName == "Dark Sovereigns") { shortName = QString("DS"); return; }
+        if (longName == "Vampire: The Eternal Struggle") { shortName = QString("VTES"); return; }
+        if (longName == "Anthology") { shortName = QString(""); return; }
+        if (longName == "New Blood II") { shortName = QString("NB2"); return; }
+        if (longName == "Heirs to the Blood") { shortName = QString("HttB"); return; }
+        if (longName == "Kindred Most Wanted") { shortName = QString("KMW"); return; }
+        if (longName == "Legacies of Blood") { shortName = QString("LoB"); return; }
+        if (longName == "Fifth Edition") { shortName = QString("V5"); return; }
+        if (longName == "The Unaligned") { shortName = QString(""); return; }
+        if (longName == "Twilight Rebellion") { shortName = QString("TB"); return; }
+        if (longName == "Camarilla Edition") { shortName = QString("CE"); return; }
+        if (longName == "Anarch Unbound") { shortName = QString("AU"); return; }
+        if (longName == "Bloodlines") { shortName = QString("B"); return; }
+        if (longName == "Echoes of Gehenna") { shortName = QString("EoG"); return; }
+        if (longName == "Sword of Caine") { shortName = QString("SoC"); return; }
+        if (longName == "Keepers of Tradition Reprint") { shortName = QString("KoTR"); return; }
+        if (longName == "Black Hand") { shortName = QString("BH"); return; }
+        if (longName == "Nights of Reckoning") { shortName = QString("NoR"); return; }
+        if (longName == "Heirs to the Blood Reprint") { shortName = QString("HttBR"); return; }
+        if (longName == "Final Nights") { shortName = QString("FN"); return; }
+        if (longName == "Third Edition") { shortName = QString("3th"); return; }
+        if (longName == "Keepers of Tradition") { shortName = QString("KoT"); return; }
+        if (longName == "Sabbat") { shortName = QString("S"); return; }
+        if (longName == "Ebony Kingdom") { shortName = QString("EK"); return; }
+        if (longName == "First Blood") { shortName = QString("1e"); return; }
+        if (longName == "Tenth Anniversary") { shortName = QString("10th"); return; }
+        if (longName == "Lost Kindred") { shortName = QString("LK"); return; }
+        if (longName == "Twenty-Fifth Anniversary") { shortName = QString("25th"); return; }
+        if (longName == "Fifth Edition (Anarch)") { shortName = QString("V5A"); return; }
+        if (longName == "Jyhad") { shortName = QString("J"); return; }
+        if (longName == "Sabbat Preconstructed") { shortName = QString("SP"); return; }
+        if (longName == "Fifth Edition (Companion)") { shortName = QString("V5C"); return; } 
+        if (longName == "Blood Shadowed Court") { shortName = QString("BSC"); return;
+        }
+        shortName = QString("Promo");
     }
+
     bool operator<(const SetToDownload &set) const
     {
         return longName.compare(set.longName, Qt::CaseInsensitive) < 0;
@@ -89,8 +132,8 @@ class OracleImporter : public CardDatabase
 {
     Q_OBJECT
 private:
-    const QStringList mainCardTypes = {"Planeswalker", "Creature", "Land",       "Sorcery",
-                                       "Instant",      "Artifact", "Enchantment"};
+    //const QStringList mainCardTypes = {"Crypt", "Master", "Minion", "Event"}; // {"Crypt",  "Master", "Political Action", "Ally",  "Equipment",
+                                            // "Retainer", "Action Modifier", "Reaction", "Combat", "Event",  "Conviction", "Power", "Reflex"};
     QList<SetToDownload> allSets;
     QVariantMap setsMap;
     QString dataDir;

@@ -19,8 +19,7 @@ set(oracle_SOURCES
     ../cockatrice/src/carddatabase.cpp
     ../cockatrice/src/pictureloader.cpp
     ../cockatrice/src/carddbparser/carddatabaseparser.cpp
-    ../cockatrice/src/carddbparser/cockatricexml3.cpp
-    ../cockatrice/src/carddbparser/cockatricexml4.cpp
+    ../cockatrice/src/carddbparser/schrecknet.cc
     ../cockatrice/src/settingscache.cpp
     ../cockatrice/src/shortcutssettings.cpp
     ../cockatrice/src/settings/carddatabasesettings.cpp

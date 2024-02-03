@@ -1,6 +1,6 @@
 #include "oracleimporter.h"
 
-#include "carddbparser/cockatricexml4.h"
+#include "carddbparser/schrecknet.h"
 #include "qt-json/json.h"
 
 #include <QtWidgets>
@@ -21,53 +21,44 @@ OracleImporter::OracleImporter(const QString &_dataDir, QObject *parent) : CardD
 
 bool OracleImporter::readSetsFromByteArray(const QByteArray &data)
 {
+    // Schrecknet Note: This is _very_ sub-optimal but as VTES doesn't release like a maniac we can just download everything at one go.
+    //                  But we keep it the Cockatrice way, even though we do way to many loops this way..
+    //                  We'll fix it when it becomes a problem.
     QList<SetToDownload> newSetList;
+    QSet<QString> setNames;
+    QList<QVariant> setCards;
 
     bool ok;
-    setsMap = QtJson::Json::parse(QString(data), ok).toMap().value("data").toMap();
+
+    auto cardArray = QtJson::Json::parse(QString(data), ok).toJsonArray();
     if (!ok) {
         qDebug() << "error: QtJson::Json::parse()";
         return false;
     }
 
-    QListIterator<QVariant> it(setsMap.values());
-    QVariantMap map;
+    Q_FOREACH (auto card, cardArray) {
+        auto cardSets = card.toObject().value("sets").toObject();
+        Q_FOREACH (auto setName, cardSets.keys()) {
+            setNames.insert(setName);
+        }
+    }
 
-    QString shortName;
-    QString longName;
-    QList<QVariant> setCards;
-    QString setType;
-    QDate releaseDate;
+    // For Each Set
+    Q_FOREACH (auto setName, setNames) {
+        setCards.empty();
 
-    while (it.hasNext()) {
-        map = it.next().toMap();
-        shortName = map.value("code").toString().toUpper();
-        longName = map.value("name").toString();
-        setCards = map.value("cards").toList();
-        setType = map.value("type").toString();
-        // capitalize set type
-        if (setType.length() > 0) {
-            // basic grammar for words that aren't capitalized, like in "From the Vault"
-            const QStringList noCapitalize = {"the", "a", "an", "on", "to", "for", "of", "in", "and", "with", "or"};
-            QStringList words = setType.split("_");
-            setType.clear();
-            bool first = false;
-            for (auto &item : words) {
-                if (first && noCapitalize.contains(item)) {
-                    setType += item + QString(" ");
-                } else {
-                    setType += item[0].toUpper() + item.mid(1, -1) + QString(" ");
-                    first = true;
-                }
+        // Check each card to be in the set
+        Q_FOREACH (auto card, cardArray) {
+            auto cardSets = card.toObject().value("sets").toObject();
+            if (cardSets.keys().contains(setName)) {
+                // The card is in the current set to add.
+                setCards.append(card.toObject());
             }
-            setType = setType.trimmed();
         }
-        if (!nonEnglishSets.contains(shortName)) {
-            releaseDate = map.value("releaseDate").toDate();
-        } else {
-            releaseDate = QDate();
-        }
-        newSetList.append(SetToDownload(shortName, longName, setCards, setType, releaseDate));
+
+        // Add all the sets and cards  to the newsetList
+        // Schrecknet Note; releaseDate is already a tad insane.
+        newSetList.append(SetToDownload(setName, setCards));
     }
 
     std::sort(newSetList.begin(), newSetList.end());
@@ -85,13 +76,28 @@ QString OracleImporter::getMainCardType(const QStringList &typeList)
         return {};
     }
 
-    for (const auto &type : mainCardTypes) {
-        if (typeList.contains(type)) {
-            return type;
-        }
+    if (typeList.contains("Master")) {
+        return QString("Master");
     }
 
-    return typeList.first();
+    if (typeList.contains("Event")) {
+        return QString("Event");
+    }
+
+    if (typeList.contains("Vampire") || typeList.contains("Imbeud")) {
+        return QString("Crypt");
+    }
+    return QString("Minion");
+    // for (const auto &type : mainCardTypes) {
+
+    //     // {"Crypt",  "Master", "Political Action", "Ally",  "Equipment",
+    //     // "Retainer", "Action Modifier", "Reaction", "Combat", "Event",  "Conviction", "Power", "Reflex"};
+    //     if (typeList.contains(type)) {
+    //         return type;
+    //     }
+    // }
+
+    // return typeList.first();
 }
 
 CardInfoPtr OracleImporter::addCard(QString name,
@@ -102,41 +108,14 @@ CardInfoPtr OracleImporter::addCard(QString name,
                                     CardInfoPerSet setInfo)
 {
     // Workaround for card name weirdness
-    name = name.replace("Æ", "AE");
-    name = name.replace("’", "'");
     if (cards.contains(name)) {
         CardInfoPtr card = cards.value(name);
         card->addToSet(setInfo.getPtr(), setInfo);
         return card;
     }
 
-    // Remove {} around mana costs, except if it's split cost
-    QString manacost = properties.value("manacost").toString();
-    if (!manacost.isEmpty()) {
-        QStringList symbols = manacost.split("}");
-        QString formattedCardCost;
-        for (QString symbol : symbols) {
-            if (symbol.contains(QRegularExpression("[0-9WUBGRP]/[0-9WUBGRP]"))) {
-                symbol.append("}");
-            } else {
-                symbol.remove(QChar('{'));
-            }
-            formattedCardCost.append(symbol);
-        }
-        properties.insert("manacost", formattedCardCost);
-    }
 
-    // fix colors
-    QString allColors = properties.value("colors").toString();
-    if (allColors.size() > 1) {
-        sortAndReduceColors(allColors);
-        properties.insert("colors", allColors);
-    }
-    QString allColorIdent = properties.value("coloridentity").toString();
-    if (allColorIdent.size() > 1) {
-        sortAndReduceColors(allColorIdent);
-        properties.insert("coloridentity", allColorIdent);
-    }
+    /* Fix Properties here.. */
 
     // DETECT CARD POSITIONING INFO
 
@@ -148,27 +127,21 @@ CardInfoPtr OracleImporter::addCard(QString name,
     // table row
     int tableRow = 1;
     QString mainCardType = properties.value("maintype").toString();
-    if ((mainCardType == "Land"))
+    if ((mainCardType == "Crypt")) {
         tableRow = 0;
-    else if ((mainCardType == "Sorcery") || (mainCardType == "Instant"))
-        tableRow = 3;
-    else if (mainCardType == "Creature")
+    } else if (mainCardType == "Minion") {
         tableRow = 2;
+    } else {
+        tableRow = 3;
+    }
 
-    // card side
-    QString side = properties.value("side").toString() == "b" ? "back" : "front";
-    properties.insert("side", side);
-
-    // upsideDown (flip cards)
-    QString layout = properties.value("layout").toString();
-    bool upsideDown = layout == "flip" && side == "back";
 
     // insert the card and its properties
     QList<CardRelation *> reverseRelatedCards;
     CardInfoPerSetMap setsInfo;
     setsInfo.insert(setInfo.getPtr()->getShortName(), setInfo);
     CardInfoPtr newCard = CardInfo::newInstance(name, text, isToken, properties, relatedCards, reverseRelatedCards,
-                                                setsInfo, cipt, tableRow, upsideDown);
+                                                setsInfo, cipt, tableRow);
 
     if (name.isEmpty()) {
         qDebug() << "warning: an empty card was added to set" << setInfo.getPtr()->getShortName();
@@ -187,142 +160,31 @@ int OracleImporter::importCardsFromSet(const CardSetPtr &currentSet,
                                        const QList<QVariant> &cardsList,
                                        bool skipSpecialCards)
 {
-    // mtgjson name => xml name
-    static const QMap<QString, QString> cardProperties{
-        {"manaCost", "manacost"}, {"manaValue", "cmc"}, {"type", "type"},
-        {"loyalty", "loyalty"},   {"layout", "layout"}, {"side", "side"},
-    };
-
-    // mtgjson name => xml name
-    static const QMap<QString, QString> setInfoProperties{{"number", "num"}, {"rarity", "rarity"}};
-
-    // mtgjson name => xml name
-    static const QMap<QString, QString> identifierProperties{{"multiverseId", "muid"}, {"scryfallId", "uuid"}};
-
     int numCards = 0;
-    QMap<QString, QList<SplitCardPart>> splitCards;
-    QString ptSeparator("/");
     QVariantMap card;
-    QString layout, name, text, colors, colorIdentity, maintype, faceName;
+    QString name, printedName, picUrl, text, mainType;
     static const bool isToken = false;
     QVariantHash properties;
     CardInfoPerSet setInfo;
     QList<CardRelation *> relatedCards;
-    static const QList<QString> specialNumChars = {"★", "s", "†"};
-    QMap<QString, QVariant> specialPromoCards;
-    QList<QString> allNameProps;
+
+    setInfo = CardInfoPerSet(currentSet);
 
     for (const QVariant &cardVar : cardsList) {
         card = cardVar.toMap();
+        auto keys = card.keys();
+        // 'id', '_name', 'url', 'types', 'clans', 'capacity', 'disciplines', 'card_text', '_set'
+        // 'sets', 'scans', 'artists', 'group', 'ordered_sets', 'name_variants', 'name', 'printed_name'
+        // Types: {'Combat', 'Equipment', 'Political Action', 'Reaction', 'Conviction', 'Master', 'Ally', 'Vampire', 'Action Modifier', 'Power', 'Event', 'Action', 'Imbued', 'Retainer'}
 
-        // skip alternatives
-        if (getStringPropertyFromMap(card, "isAlternative") == "true") {
-            continue;
-        }
-
-        /* Currently used layouts are:
-         * augment, double_faced_token, flip, host, leveler, meld, normal, planar,
-         * saga, scheme, split, token, transform, vanguard
-         */
-        layout = getStringPropertyFromMap(card, "layout");
-
-        // don't import tokens from the json file
-        if (layout == "token") {
-            continue;
-        }
-
-        // normal cards handling
         name = getStringPropertyFromMap(card, "name");
-        text = getStringPropertyFromMap(card, "text");
-        faceName = getStringPropertyFromMap(card, "faceName");
-        if (faceName.isEmpty()) {
-            faceName = name;
-        }
-
+        text =  getStringPropertyFromMap(card, "card_text");
+        
         // card properties
         properties.clear();
-        QMapIterator<QString, QString> it(cardProperties);
-        while (it.hasNext()) {
-            it.next();
-            QString mtgjsonProperty = it.key();
-            QString xmlPropertyName = it.value();
-            QString propertyValue = getStringPropertyFromMap(card, mtgjsonProperty);
-            if (!propertyValue.isEmpty())
-                properties.insert(xmlPropertyName, propertyValue);
-        }
-
-        // per-set properties
-        setInfo = CardInfoPerSet(currentSet);
-        QMapIterator<QString, QString> it2(setInfoProperties);
-        while (it2.hasNext()) {
-            it2.next();
-            QString mtgjsonProperty = it2.key();
-            QString xmlPropertyName = it2.value();
-            QString propertyValue = getStringPropertyFromMap(card, mtgjsonProperty);
-            if (!propertyValue.isEmpty())
-                setInfo.setProperty(xmlPropertyName, propertyValue);
-        }
-
-        // Identifiers
-        QMapIterator<QString, QString> it3(identifierProperties);
-        while (it3.hasNext()) {
-            it3.next();
-            auto mtgjsonProperty = it3.key();
-            auto xmlPropertyName = it3.value();
-            auto propertyValue = getStringPropertyFromMap(card.value("identifiers").toMap(), mtgjsonProperty);
-            if (!propertyValue.isEmpty()) {
-                setInfo.setProperty(xmlPropertyName, propertyValue);
-            }
-        }
-
-        QString numComponent{};
-        if (skipSpecialCards) {
-            QString numProperty = setInfo.getProperty("num");
-            // skip promo cards if it's not the only print, cards with two faces are different cards
-            if (allNameProps.contains(faceName)) {
-                // check for alternative versions
-                if (layout != "normal")
-                    continue;
-
-                // alternative versions have a letter in the end of num like abc
-                // note this will also catch p and s, those will get removed later anyway
-                QChar lastChar = numProperty.at(numProperty.size() - 1);
-                if (!lastChar.isLetter())
-                    continue;
-
-                numComponent = " (" + QString(lastChar) + ")";
-                faceName += numComponent; // add to facename to make it unique
-            }
-            if (getStringPropertyFromMap(card, "isPromo") == "true") {
-                specialPromoCards.insert(faceName, cardVar);
-                continue;
-            }
-            bool skip = false;
-            // skip cards containing special stuff in the collectors number like promo cards
-            for (const QString &specialChar : specialNumChars) {
-                if (numProperty.contains(specialChar)) {
-                    skip = true;
-                    break;
-                }
-            }
-            if (skip) {
-                specialPromoCards.insert(faceName, cardVar);
-                continue;
-            } else {
-                allNameProps.append(faceName);
-            }
-        }
-
-        // special handling properties
-        colors = card.value("colors").toStringList().join("");
-        if (!colors.isEmpty()) {
-            properties.insert("colors", colors);
-        }
-
-        // special handling properties
-        colorIdentity = card.value("colorIdentity").toStringList().join("");
-        if (!colorIdentity.isEmpty()) {
-            properties.insert("coloridentity", colorIdentity);
+        // QMapIterator<QString, QString> it(cardProperties);
+        Q_FOREACH(auto key, card.keys()) {
+            properties.insert(key, card[key]);
         }
 
         const auto &mainCardType = getMainCardType(card.value("types").toStringList());
@@ -332,139 +194,134 @@ int OracleImporter::importCardsFromSet(const CardSetPtr &currentSet,
             properties.insert("maintype", mainCardType);
         }
 
-        // Depending on whether power and/or toughness are present, the format
-        // is either P/T (most common), P (no toughness), or /T (no power).
-        QString power = getStringPropertyFromMap(card, "power");
-        QString toughness = getStringPropertyFromMap(card, "toughness");
-        if (toughness.isEmpty() && !power.isEmpty()) {
-            properties.insert("pt", power);
-        } else if (!toughness.isEmpty()) {
-            properties.insert("pt", power + ptSeparator + toughness);
-        }
-
-        auto legalities = card.value("legalities").toMap();
-        for (const QString &fmtName : legalities.keys()) {
-            properties.insert(QString("format-%1").arg(fmtName), legalities.value(fmtName).toString().toLower());
-        }
-
-        // split cards are considered a single card, enqueue for later merging
-        if (layout == "split" || layout == "aftermath" || layout == "adventure") {
-            auto _faceName = getStringPropertyFromMap(card, "faceName");
-            SplitCardPart split(_faceName, text, properties, setInfo);
-            auto found_iter = splitCards.find(name);
-            if (found_iter == splitCards.end()) {
-                splitCards.insert(name, {split});
-            } else if (layout == "adventure") {
-                found_iter->insert(0, split);
-            } else {
-                found_iter->append(split);
-            }
-        } else {
-            // relations
-            relatedCards.clear();
-
-            // add other face for split cards as card relation
-            if (!getStringPropertyFromMap(card, "side").isEmpty()) {
-                properties["cmc"] = getStringPropertyFromMap(card, "faceManaValue");
-                if (layout == "meld") { // meld cards don't work
-                    static const QRegularExpression meldNameRegex{"then meld them into ([^\\.]*)"};
-                    QString additionalName = meldNameRegex.match(text).captured(1);
-                    if (!additionalName.isNull()) {
-                        relatedCards.append(new CardRelation(additionalName, CardRelation::TransformInto));
-                    }
-                } else {
-                    for (const QString &additionalName : name.split(" // ")) {
-                        if (additionalName != faceName) {
-                            relatedCards.append(new CardRelation(additionalName, CardRelation::TransformInto));
-                        }
-                    }
-                }
-                name = faceName;
-            }
-
-            // mtgjon related cards
-            if (card.contains("relatedCards")) {
-                QVariantMap givenRelated = card.value("relatedCards").toMap();
-                // conjured cards from a spellbook
-                if (givenRelated.contains("spellbook")) {
-                    auto spbk = givenRelated.value("spellbook").toStringList();
-                    for (const QString &spbkName : spbk) {
-                        relatedCards.append(
-                            new CardRelation(spbkName, CardRelation::DoesNotAttach, false, false, 1, true));
-                    }
-                }
-            }
-
-            CardInfoPtr newCard = addCard(name + numComponent, text, isToken, properties, relatedCards, setInfo);
-            numCards++;
-        }
-    }
-
-    // split cards handling
-    static const QString splitCardPropSeparator = QString(" // ");
-    static const QString splitCardTextSeparator = QString("\n\n---\n\n");
-    for (const QString &nameSplit : splitCards.keys()) {
-        // get all parts for this specific card
-        QList<SplitCardPart> splitCardParts = splitCards.value(nameSplit);
-        QSet<QString> done{};
-
-        text.clear();
-        properties.clear();
-        relatedCards.clear();
-
-        for (const SplitCardPart &tmp : splitCardParts) {
-            // some sets have 2 different variations of the same split card,
-            // eg. Fire // Ice in WC02. Avoid adding duplicates.
-            QString splitName = tmp.getName();
-            if (done.contains(splitName)) {
-                continue;
-            }
-            done.insert(splitName);
-
-            if (!text.isEmpty()) {
-                text.append(splitCardTextSeparator);
-            }
-            text.append(tmp.getText());
-
-            if (properties.isEmpty()) {
-                properties = tmp.getProperties();
-                setInfo = tmp.getSetInfo();
-            } else {
-                const QVariantHash &tmpProps = tmp.getProperties();
-                for (const QString &prop : tmpProps.keys()) {
-                    QString originalPropertyValue = properties.value(prop).toString();
-                    QString thisCardPropertyValue = tmpProps.value(prop).toString();
-                    if (!thisCardPropertyValue.isEmpty() && originalPropertyValue != thisCardPropertyValue) {
-                        if (originalPropertyValue.isEmpty()) { // don't create //es if one field is empty
-                            properties.insert(prop, thisCardPropertyValue);
-                        } else if (prop == "colors") { // the card is both colors
-                            properties.insert(prop, originalPropertyValue + thisCardPropertyValue);
-                        } else if (prop == "maintype") { // don't create maintypes with //es in them
-                            continue;
-                        } else {
-                            properties.insert(prop,
-                                              originalPropertyValue + splitCardPropSeparator + thisCardPropertyValue);
-                        }
-                    }
-                }
-            }
-        }
-        CardInfoPtr newCard = addCard(nameSplit, text, isToken, properties, relatedCards, setInfo);
+        CardInfoPtr newCard = addCard(name, text, isToken, properties, relatedCards, setInfo);
         numCards++;
     }
 
-    // only add the unique promo cards that didn't already exist in the set
-    if (skipSpecialCards) {
-        QList<QVariant> nonDuplicatePromos;
-        for (auto cardIter = specialPromoCards.constBegin(); cardIter != specialPromoCards.constEnd(); ++cardIter) {
-            if (!allNameProps.contains(cardIter.key())) {
-                nonDuplicatePromos.append(cardIter.value());
-            }
-        }
-        if (!nonDuplicatePromos.isEmpty()) {
-            numCards += importCardsFromSet(currentSet, nonDuplicatePromos, false);
-        }
-    }
+    
+    //     auto legalities = card.value("legalities").toMap();
+    //     for (const QString &fmtName : legalities.keys()) {
+    //         properties.insert(QString("format-%1").arg(fmtName), legalities.value(fmtName).toString().toLower());
+    //     }
+
+    //     // split cards are considered a single card, enqueue for later merging
+    //     if (layout == "split" || layout == "aftermath" || layout == "adventure") {
+    //         auto _faceName = getStringPropertyFromMap(card, "faceName");
+    //         SplitCardPart split(_faceName, text, properties, setInfo);
+    //         auto found_iter = splitCards.find(name);
+    //         if (found_iter == splitCards.end()) {
+    //             splitCards.insert(name, {split});
+    //         } else if (layout == "adventure") {
+    //             found_iter->insert(0, split);
+    //         } else {
+    //             found_iter->append(split);
+    //         }
+    //     } else {
+    //         // relations
+    //         relatedCards.clear();
+
+    //         // add other face for split cards as card relation
+    //         if (!getStringPropertyFromMap(card, "side").isEmpty()) {
+    //             properties["cmc"] = getStringPropertyFromMap(card, "faceManaValue");
+    //             if (layout == "meld") { // meld cards don't work
+    //                 static const QRegularExpression meldNameRegex{"then meld them into ([^\\.]*)"};
+    //                 QString additionalName = meldNameRegex.match(text).captured(1);
+    //                 if (!additionalName.isNull()) {
+    //                     relatedCards.append(new CardRelation(additionalName, CardRelation::TransformInto));
+    //                 }
+    //             } else {
+    //                 for (const QString &additionalName : name.split(" // ")) {
+    //                     if (additionalName != faceName) {
+    //                         relatedCards.append(new CardRelation(additionalName, CardRelation::TransformInto));
+    //                     }
+    //                 }
+    //             }
+    //             name = faceName;
+    //         }
+
+    //         // mtgjon related cards
+    //         if (card.contains("relatedCards")) {
+    //             QVariantMap givenRelated = card.value("relatedCards").toMap();
+    //             // conjured cards from a spellbook
+    //             if (givenRelated.contains("spellbook")) {
+    //                 auto spbk = givenRelated.value("spellbook").toStringList();
+    //                 for (const QString &spbkName : spbk) {
+    //                     relatedCards.append(
+    //                         new CardRelation(spbkName, CardRelation::DoesNotAttach, false, false, 1, true));
+    //                 }
+    //             }
+    //         }
+
+    //         CardInfoPtr newCard = addCard(name + numComponent, text, isToken, properties, relatedCards, setInfo);
+    //         numCards++;
+    //     }
+    // }
+
+    // // split cards handling
+    // static const QString splitCardPropSeparator = QString(" // ");
+    // static const QString splitCardTextSeparator = QString("\n\n---\n\n");
+    // for (const QString &nameSplit : splitCards.keys()) {
+    //     // get all parts for this specific card
+    //     QList<SplitCardPart> splitCardParts = splitCards.value(nameSplit);
+    //     QSet<QString> done{};
+
+    //     text.clear();
+    //     properties.clear();
+    //     relatedCards.clear();
+
+    //     for (const SplitCardPart &tmp : splitCardParts) {
+    //         // some sets have 2 different variations of the same split card,
+    //         // eg. Fire // Ice in WC02. Avoid adding duplicates.
+    //         QString splitName = tmp.getName();
+    //         if (done.contains(splitName)) {
+    //             continue;
+    //         }
+    //         done.insert(splitName);
+
+    //         if (!text.isEmpty()) {
+    //             text.append(splitCardTextSeparator);
+    //         }
+    //         text.append(tmp.getText());
+
+    //         if (properties.isEmpty()) {
+    //             properties = tmp.getProperties();
+    //             setInfo = tmp.getSetInfo();
+    //         } else {
+    //             const QVariantHash &tmpProps = tmp.getProperties();
+    //             for (const QString &prop : tmpProps.keys()) {
+    //                 QString originalPropertyValue = properties.value(prop).toString();
+    //                 QString thisCardPropertyValue = tmpProps.value(prop).toString();
+    //                 if (!thisCardPropertyValue.isEmpty() && originalPropertyValue != thisCardPropertyValue) {
+    //                     if (originalPropertyValue.isEmpty()) { // don't create //es if one field is empty
+    //                         properties.insert(prop, thisCardPropertyValue);
+    //                     } else if (prop == "colors") { // the card is both colors
+    //                         properties.insert(prop, originalPropertyValue + thisCardPropertyValue);
+    //                     } else if (prop == "maintype") { // don't create maintypes with //es in them
+    //                         continue;
+    //                     } else {
+    //                         properties.insert(prop,
+    //                                           originalPropertyValue + splitCardPropSeparator + thisCardPropertyValue);
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     CardInfoPtr newCard = addCard(nameSplit, text, isToken, properties, relatedCards, setInfo);
+    //     numCards++;
+    // }
+
+    // // only add the unique promo cards that didn't already exist in the set
+    // if (skipSpecialCards) {
+    //     QList<QVariant> nonDuplicatePromos;
+    //     for (auto cardIter = specialPromoCards.constBegin(); cardIter != specialPromoCards.constEnd(); ++cardIter) {
+    //         if (!allNameProps.contains(cardIter.key())) {
+    //             nonDuplicatePromos.append(cardIter.value());
+    //         }
+    //     }
+    //     if (!nonDuplicatePromos.isEmpty()) {
+    //         numCards += importCardsFromSet(currentSet, nonDuplicatePromos, false);
+    //     }
+    // }
     return numCards;
 }
 
@@ -513,7 +370,7 @@ int OracleImporter::startImport()
 
 bool OracleImporter::saveToFile(const QString &fileName, const QString &sourceUrl, const QString &sourceVersion)
 {
-    CockatriceXml4Parser parser;
+    SchrecknetParser parser;
     return parser.saveToFile(sets, cards, fileName, sourceUrl, sourceVersion);
 }
 

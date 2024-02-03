@@ -26,29 +26,9 @@
 #include <QtConcurrent>
 #include <QtGui>
 
-#ifdef HAS_LZMA
-#include "lzma/decompress.h"
-#endif
+#define VTES_CARDDB_URL "https://static.krcg.org/data/vtes.json"
 
-#ifdef HAS_ZLIB
-#include "zip/unzip.h"
-#endif
-
-#define ZIP_SIGNATURE "PK"
-// Xz stream header: 0xFD + "7zXZ"
-#define XZ_SIGNATURE "\xFD\x37\x7A\x58\x5A"
-#define MTGJSON_V4_URL_COMPONENT "mtgjson.com/files/"
-#define ALLSETS_URL_FALLBACK "https://www.mtgjson.com/api/v5/AllPrintings.json"
-#define MTGJSON_VERSION_URL "https://www.mtgjson.com/api/v5/Meta.json"
-
-#ifdef HAS_LZMA
-#define ALLSETS_URL "https://www.mtgjson.com/api/v5/AllPrintings.json.xz"
-#elif defined(HAS_ZLIB)
-#define ALLSETS_URL "https://www.mtgjson.com/api/v5/AllPrintings.json.zip"
-#else
-#define ALLSETS_URL "https://www.mtgjson.com/api/v5/AllPrintings.json"
-#endif
-
+// Todo; Add Custom VTES Token and Spoilers.
 #define TOKENS_URL "https://raw.githubusercontent.com/Cockatrice/Magic-Token/master/tokens.xml"
 #define SPOILERS_URL "https://raw.githubusercontent.com/Cockatrice/Magic-Spoiler/files/spoiler.xml"
 
@@ -248,7 +228,7 @@ LoadSetsPage::LoadSetsPage(QWidget *parent) : OracleWizardPage(parent)
 
 void LoadSetsPage::initializePage()
 {
-    urlLineEdit->setText(wizard()->settings->value("allsetsurl", ALLSETS_URL).toString());
+    urlLineEdit->setText(wizard()->settings->value("allsetsurl", VTES_CARDDB_URL).toString());
 
     progressLabel->hide();
     progressBar->hide();
@@ -269,7 +249,7 @@ void LoadSetsPage::retranslateUi()
 
 void LoadSetsPage::actRestoreDefaultUrl()
 {
-    urlLineEdit->setText(ALLSETS_URL);
+    urlLineEdit->setText(VTES_CARDDB_URL);
 }
 
 void LoadSetsPage::actLoadSetsFile()
@@ -278,12 +258,6 @@ void LoadSetsPage::actLoadSetsFile()
     dialog.setFileMode(QFileDialog::ExistingFile);
 
     QString extensions = "*.json";
-#ifdef HAS_ZLIB
-    extensions += " *.zip";
-#endif
-#ifdef HAS_LZMA
-    extensions += " *.xz";
-#endif
     dialog.setNameFilter(tr("Sets JSON file (%1)").arg(extensions));
 
     if (!fileLineEdit->text().isEmpty() && QFile::exists(fileLineEdit->text())) {
@@ -306,11 +280,6 @@ bool LoadSetsPage::validatePage()
 
     // else, try to import sets
     if (urlRadioButton->isChecked()) {
-        // If a user attempts to download from V4, redirect them to V5
-        if (urlLineEdit->text().contains(MTGJSON_V4_URL_COMPONENT)) {
-            actRestoreDefaultUrl();
-        }
-
         const auto url = QUrl::fromUserInput(urlLineEdit->text());
 
         if (!url.isValid()) {
@@ -356,33 +325,6 @@ bool LoadSetsPage::validatePage()
 
 void LoadSetsPage::downloadSetsFile(const QUrl &url)
 {
-    wizard()->setCardSourceVersion("unknown");
-
-    const auto urlString = url.toString();
-    if (urlString == ALLSETS_URL || urlString == ALLSETS_URL_FALLBACK) {
-        const auto versionUrl = QUrl::fromUserInput(MTGJSON_VERSION_URL);
-        auto *versionReply = wizard()->nam->get(QNetworkRequest(versionUrl));
-        connect(versionReply, &QNetworkReply::finished, [this, versionReply]() {
-            if (versionReply->error() == QNetworkReply::NoError) {
-                auto jsonData = versionReply->readAll();
-                QJsonParseError jsonError{};
-                auto jsonResponse = QJsonDocument::fromJson(jsonData, &jsonError);
-
-                if (jsonError.error == QJsonParseError::NoError) {
-                    const auto jsonMap = jsonResponse.toVariant().toMap();
-
-                    auto versionString = jsonMap.value("meta").toMap().value("version").toString();
-                    if (versionString.isEmpty()) {
-                        versionString = "unknown";
-                    }
-                    wizard()->setCardSourceVersion(versionString);
-                }
-            }
-
-            versionReply->deleteLater();
-        });
-    }
-
     wizard()->setCardSourceUrl(url.toString());
 
     auto *reply = wizard()->nam->get(QNetworkRequest(url));
@@ -428,7 +370,7 @@ void LoadSetsPage::actDownloadFinishedSetsFile()
     progressBar->hide();
 
     // save AllPrintings.json url, but only if the user customized it and download was successful
-    if (urlLineEdit->text() != QString(ALLSETS_URL)) {
+    if (urlLineEdit->text() != QString(VTES_CARDDB_URL)) {
         wizard()->settings->setValue("allsetsurl", urlLineEdit->text());
     } else {
         wizard()->settings->remove("allsetsurl");
@@ -455,74 +397,7 @@ void LoadSetsPage::readSetsFromByteArray(QByteArray _data)
 
 void LoadSetsPage::readSetsFromByteArrayRef(QByteArray &_data)
 {
-    // unzip the file if needed
-    if (_data.startsWith(XZ_SIGNATURE)) {
-#ifdef HAS_LZMA
-        // zipped file
-        auto *inBuffer = new QBuffer(&_data);
-        auto newData = QByteArray();
-        auto *outBuffer = new QBuffer(&newData);
-        inBuffer->open(QBuffer::ReadOnly);
-        outBuffer->open(QBuffer::WriteOnly);
-        XzDecompressor xz;
-        if (!xz.decompress(inBuffer, outBuffer)) {
-            zipDownloadFailed(tr("Xz extraction failed."));
-            return;
-        }
-        _data.clear();
-        readSetsFromByteArrayRef(newData);
-        return;
-#else
-        zipDownloadFailed(tr("Sorry, this version of Oracle does not support xz compressed files."));
-
-        wizard()->enableButtons();
-        setEnabled(true);
-        progressLabel->hide();
-        progressBar->hide();
-        return;
-#endif
-    } else if (_data.startsWith(ZIP_SIGNATURE)) {
-#ifdef HAS_ZLIB
-        // zipped file
-        auto *inBuffer = new QBuffer(&_data);
-        auto newData = QByteArray();
-        auto *outBuffer = new QBuffer(&newData);
-        QString fileName;
-        UnZip::ErrorCode ec;
-        UnZip uz;
-
-        ec = uz.openArchive(inBuffer);
-        if (ec != UnZip::Ok) {
-            zipDownloadFailed(tr("Failed to open Zip archive: %1.").arg(uz.formatError(ec)));
-            return;
-        }
-
-        if (uz.fileList().size() != 1) {
-            zipDownloadFailed(tr("Zip extraction failed: the Zip archive doesn't contain exactly one file."));
-            return;
-        }
-        fileName = uz.fileList().at(0);
-
-        outBuffer->open(QBuffer::ReadWrite);
-        ec = uz.extractFile(fileName, outBuffer);
-        if (ec != UnZip::Ok) {
-            zipDownloadFailed(tr("Zip extraction failed: %1.").arg(uz.formatError(ec)));
-            uz.closeArchive();
-            return;
-        }
-        _data.clear();
-        readSetsFromByteArrayRef(newData);
-        return;
-#else
-        zipDownloadFailed(tr("Sorry, this version of Oracle does not support zipped files."));
-
-        wizard()->enableButtons();
-        setEnabled(true);
-        progressLabel->hide();
-        progressBar->hide();
-        return;
-#endif
-    } else if (_data.startsWith("{")) {
+    if (_data.startsWith("[")) {
         // Start the computation.
         jsonData = std::move(_data);
         future = QtConcurrent::run([this] { return wizard()->importer->readSetsFromByteArray(std::move(jsonData)); });
@@ -538,26 +413,6 @@ void LoadSetsPage::readSetsFromByteArrayRef(QByteArray &_data)
         progressLabel->hide();
         progressBar->hide();
         QMessageBox::critical(this, tr("Error"), tr("Failed to interpret downloaded data."));
-    }
-}
-
-void LoadSetsPage::zipDownloadFailed(const QString &message)
-{
-    wizard()->enableButtons();
-    setEnabled(true);
-    progressLabel->hide();
-    progressBar->hide();
-
-    QMessageBox::StandardButton reply;
-    reply = static_cast<QMessageBox::StandardButton>(QMessageBox::question(
-        this, tr("Error"), message + "<br>" + tr("Do you want to download the uncompressed file instead?"),
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes));
-
-    if (reply == QMessageBox::Yes) {
-        urlRadioButton->setChecked(true);
-        urlLineEdit->setText(ALLSETS_URL_FALLBACK);
-
-        wizard()->next();
     }
 }
 

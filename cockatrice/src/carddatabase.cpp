@@ -1,7 +1,8 @@
 #include "carddatabase.h"
 
-#include "carddbparser/cockatricexml3.h"
-#include "carddbparser/cockatricexml4.h"
+// #include "carddbparser/cockatricexml3.h"
+// #include "carddbparser/cockatricexml4.h"
+#include "carddbparser/schrecknet.h"
 #include "game_specific_terms.h"
 #include "pictureloader.h"
 #include "settingscache.h"
@@ -337,8 +338,7 @@ CardDatabase::CardDatabase(QObject *parent) : QObject(parent), loadStatus(NotLoa
     qRegisterMetaType<CardInfoPtr>("CardSetPtr");
 
     // add new parsers here
-    availableParsers << new CockatriceXml4Parser;
-    availableParsers << new CockatriceXml3Parser;
+     availableParsers << new SchrecknetParser;
 
     for (auto &parser : availableParsers) {
         connect(parser, SIGNAL(addCard(CardInfoPtr)), this, SLOT(addCard(CardInfoPtr)), Qt::DirectConnection);

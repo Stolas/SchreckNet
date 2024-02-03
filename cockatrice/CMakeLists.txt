@@ -15,8 +15,7 @@ set(cockatrice_SOURCES
     src/carddatabase.cpp
     src/carddatabasemodel.cpp
     src/carddbparser/carddatabaseparser.cpp
-    src/carddbparser/cockatricexml3.cpp
-    src/carddbparser/cockatricexml4.cpp
+    src/carddbparser/schrecknet.cc
     src/carddragitem.cpp
     src/cardfilter.cpp
     src/cardframe.cpp

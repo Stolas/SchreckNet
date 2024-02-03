@@ -6,7 +6,7 @@
 #include <QIODevice>
 #include <QString>
 
-#define COCKATRICE_XML_XSI_NAMESPACE "http://www.w3.org/2001/XMLSchema-instance"
+#define SCHRECKNET_XML_XSI_NAMESPACE "http://www.w3.org/2001/XMLSchema-instance"
 
 class ICardDatabaseParser : public QObject
 {
