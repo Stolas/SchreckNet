@@ -36,30 +36,58 @@ bool OracleImporter::readSetsFromByteArray(const QByteArray &data)
         return false;
     }
 
+    auto size = cardArray.size();
     Q_FOREACH (auto card, cardArray) {
         auto cardSets = card.toObject().value("sets").toObject();
+        // For each Set the card has.
         Q_FOREACH (auto setName, cardSets.keys()) {
-            setNames.insert(setName);
-        }
-    }
+            // Normalize all Promo sets.
+            if (setName.toLower().contains("promo")) { setName = "Promo"; }
 
-    // For Each Set
-    Q_FOREACH (auto setName, setNames) {
-        setCards.empty();
-
-        // Check each card to be in the set
-        Q_FOREACH (auto card, cardArray) {
-            auto cardSets = card.toObject().value("sets").toObject();
-            if (cardSets.keys().contains(setName)) {
-                // The card is in the current set to add.
+            // Check if in a known set.
+            bool knownSet = false;
+            Q_FOREACH (auto set_, newSetList) {
+                if (set_.getLongName() == setName) {
+                    // Set is known, and add to list.
+                    auto num = set_.addCard(card.toObject());
+                    knownSet = true;
+                    break;
+                }
+            }
+            if (!knownSet) {
+                setCards.empty();
                 setCards.append(card.toObject());
+                newSetList.append(SetToDownload(setName, setCards));
             }
         }
-
-        // Add all the sets and cards  to the newsetList
-        // Schrecknet Note; releaseDate is already a tad insane.
-        newSetList.append(SetToDownload(setName, setCards));
     }
+
+
+
+    //     // Old Slow Method
+    //     auto cardSets = card.toObject().value("sets").toObject();
+    //     Q_FOREACH (auto setName, cardSets.keys()) {
+    //         setNames.insert(setName);
+    //     }
+    // }
+
+    // // For Each Set
+    // Q_FOREACH (auto setName, setNames) {
+    //     setCards.empty();
+
+    //     // Check each card to be in the set
+    //     Q_FOREACH (auto card, cardArray) {
+    //         auto cardSets = card.toObject().value("sets").toObject();
+    //         if (cardSets.keys().contains(setName)) {
+    //             // The card is in the current set to add.
+    //             setCards.append(card.toObject());
+    //         }
+    //     }
+
+    //     // Add all the sets and cards  to the newsetList
+    //     // Schrecknet Note; releaseDate is already a tad insane.
+    //     newSetList.append(SetToDownload(setName, setCards));
+    // }
 
     std::sort(newSetList.begin(), newSetList.end());
 
@@ -88,16 +116,6 @@ QString OracleImporter::getMainCardType(const QStringList &typeList)
         return QString("Crypt");
     }
     return QString("Minion");
-    // for (const auto &type : mainCardTypes) {
-
-    //     // {"Crypt",  "Master", "Political Action", "Ally",  "Equipment",
-    //     // "Retainer", "Action Modifier", "Reaction", "Combat", "Event",  "Conviction", "Power", "Reflex"};
-    //     if (typeList.contains(type)) {
-    //         return type;
-    //     }
-    // }
-
-    // return typeList.first();
 }
 
 CardInfoPtr OracleImporter::addCard(QString name,
@@ -167,6 +185,8 @@ int OracleImporter::importCardsFromSet(const CardSetPtr &currentSet,
     QVariantHash properties;
     CardInfoPerSet setInfo;
     QList<CardRelation *> relatedCards;
+    const QStringList IGNORE_KEYS{"name", "card_text", "name_variants", "id", "artists", "sets", "_set", "_name", "ordered_sets"};
+    const QStringList ARRAY_KEYS{"disciplines", "rulings", "clans", "types", "scans"};
 
     setInfo = CardInfoPerSet(currentSet);
 
@@ -175,15 +195,21 @@ int OracleImporter::importCardsFromSet(const CardSetPtr &currentSet,
         auto keys = card.keys();
         // 'id', '_name', 'url', 'types', 'clans', 'capacity', 'disciplines', 'card_text', '_set'
         // 'sets', 'scans', 'artists', 'group', 'ordered_sets', 'name_variants', 'name', 'printed_name'
-        // Types: {'Combat', 'Equipment', 'Political Action', 'Reaction', 'Conviction', 'Master', 'Ally', 'Vampire', 'Action Modifier', 'Power', 'Event', 'Action', 'Imbued', 'Retainer'}
+        // Types: {'Combat', 'Equipment', 'Political Action', 'Reaction', 'Conviction', 'Master', 'Ally', 'Vampire',
+        // 'Action Modifier', 'Power', 'Event', 'Action', 'Imbued', 'Retainer'}
 
         name = getStringPropertyFromMap(card, "name");
-        text =  getStringPropertyFromMap(card, "card_text");
-        
+        text = getStringPropertyFromMap(card, "card_text");
+
         // card properties
         properties.clear();
-        // QMapIterator<QString, QString> it(cardProperties);
-        Q_FOREACH(auto key, card.keys()) {
+        Q_FOREACH (auto key, card.keys()) {
+            if (IGNORE_KEYS.contains(key)) { continue; }
+            if (ARRAY_KEYS.contains(key)) {
+                properties.insert(key, card[key].toStringList());
+                continue;
+            }
+
             properties.insert(key, card[key]);
         }
 
@@ -193,6 +219,14 @@ int OracleImporter::importCardsFromSet(const CardSetPtr &currentSet,
         } else {
             properties.insert("maintype", mainCardType);
         }
+
+        // Todo; Schrecknet, add relatedCards such as Viri and Zizi or Edith Blount and Enid Blount. (/XXX/), the code below is MTG code as a reminder.
+        // relatedCards.clear();
+        // static const QRegularExpression meldNameRegex{"then meld them into ([^\\.]*)"};
+        // QString additionalName = meldNameRegex.match(text).captured(1);
+        // if (!additionalName.isNull()) {
+        //     relatedCards.append(new CardRelation(additionalName, CardRelation::TransformInto));
+        // }
 
         CardInfoPtr newCard = addCard(name, text, isToken, properties, relatedCards, setInfo);
         numCards++;
@@ -325,22 +359,22 @@ int OracleImporter::importCardsFromSet(const CardSetPtr &currentSet,
     return numCards;
 }
 
-void OracleImporter::sortAndReduceColors(QString &colors)
-{
-    // sort
-    const QHash<QChar, unsigned int> colorOrder{{'W', 0}, {'U', 1}, {'B', 2}, {'R', 3}, {'G', 4}};
-    std::sort(colors.begin(), colors.end(), [&colorOrder](const QChar a, const QChar b) {
-        return colorOrder.value(a, INT_MAX) < colorOrder.value(b, INT_MAX);
-    });
-    // reduce
-    QChar lastChar = '\0';
-    for (int i = 0; i < colors.size(); ++i) {
-        if (colors.at(i) == lastChar)
-            colors.remove(i, 1);
-        else
-            lastChar = colors.at(i);
-    }
-}
+// void OracleImporter::sortAndReduceColors(QString &colors)
+// {
+//     // sort
+//     const QHash<QChar, unsigned int> colorOrder{{'W', 0}, {'U', 1}, {'B', 2}, {'R', 3}, {'G', 4}};
+//     std::sort(colors.begin(), colors.end(), [&colorOrder](const QChar a, const QChar b) {
+//         return colorOrder.value(a, INT_MAX) < colorOrder.value(b, INT_MAX);
+//     });
+//     // reduce
+//     QChar lastChar = '\0';
+//     for (int i = 0; i < colors.size(); ++i) {
+//         if (colors.at(i) == lastChar)
+//             colors.remove(i, 1);
+//         else
+//             lastChar = colors.at(i);
+//     }
+// }
 
 int OracleImporter::startImport()
 {

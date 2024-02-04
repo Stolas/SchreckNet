@@ -50,22 +50,22 @@ public:
         /* Schrecknet: To whomever it might concern, yes this is most def not the best way to implement this. */
         if (longName == "Shadows of Berlin") { shortName = QString("SoB"); return; }
         if (longName == "Danse Macabre") { shortName = QString("DM");  return; }
-        if (longName == "Anarchs") { shortName = QString(""); return; }
+        if (longName == "Anarchs") { shortName = QString("A"); return; }
         if (longName == "Sabbat War") { shortName = QString("SW"); return; }
         if (longName == "New Blood") { shortName = QString("NB"); return; }
-        if (longName == "Gehenna") { shortName = QString(""); return; }
+        if (longName == "Gehenna") { shortName = QString("G"); return; }
         if (longName == "Fall of London") { shortName = QString("FoL"); return; }
         if (longName == "Ancient Hearts") { shortName = QString("AH"); return; }
         if (longName == "Lords of the Night") { shortName = QString("LotN"); return; }
         if (longName == "Dark Sovereigns") { shortName = QString("DS"); return; }
         if (longName == "Vampire: The Eternal Struggle") { shortName = QString("VTES"); return; }
-        if (longName == "Anthology") { shortName = QString(""); return; }
+        if (longName == "Anthology") { shortName = QString("Ath"); return; }
         if (longName == "New Blood II") { shortName = QString("NB2"); return; }
         if (longName == "Heirs to the Blood") { shortName = QString("HttB"); return; }
         if (longName == "Kindred Most Wanted") { shortName = QString("KMW"); return; }
         if (longName == "Legacies of Blood") { shortName = QString("LoB"); return; }
         if (longName == "Fifth Edition") { shortName = QString("V5"); return; }
-        if (longName == "The Unaligned") { shortName = QString(""); return; }
+        if (longName == "The Unaligned") { shortName = QString("TU"); return; }
         if (longName == "Twilight Rebellion") { shortName = QString("TB"); return; }
         if (longName == "Camarilla Edition") { shortName = QString("CE"); return; }
         if (longName == "Anarch Unbound") { shortName = QString("AU"); return; }
@@ -89,9 +89,15 @@ public:
         if (longName == "Jyhad") { shortName = QString("J"); return; }
         if (longName == "Sabbat Preconstructed") { shortName = QString("SP"); return; }
         if (longName == "Fifth Edition (Companion)") { shortName = QString("V5C"); return; } 
-        if (longName == "Blood Shadowed Court") { shortName = QString("BSC"); return;
-        }
-        shortName = QString("Promo");
+        if (longName == "Blood Shadowed Court") { shortName = QString("BSC"); return; }
+        if (longName == "Print on Demand") { shortName = QString("POD"); return; }
+        shortName = QString("Pr");
+    }
+
+    int addCard(QVariant card)
+    {
+        cards.append(card);
+        return cards.length();
     }
 
     bool operator<(const SetToDownload &set) const

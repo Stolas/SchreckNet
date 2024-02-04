@@ -277,7 +277,20 @@ static QXmlStreamWriter &operator<<(QXmlStreamWriter &xml, const CardInfoPtr &in
     // generic properties
     xml.writeStartElement("prop");
     for (QString propName : info->getProperties()) {
-        xml.writeTextElement(propName, info->getProperty(propName));
+        //properties.value(propertyName)
+
+        if (info->isPropertyAList(propName)) {
+            QStringList values = info->getPropertyList(propName);
+            xml.writeStartElement(propName);
+            QString slicedName = propName.sliced(0, propName.length() - 1);
+            for (QString propValue : values) {
+                xml.writeTextElement(slicedName, propValue);
+            }
+
+            xml.writeEndElement();
+        } else {
+            xml.writeTextElement(propName, info->getProperty(propName));
+        }
     }
     xml.writeEndElement();
 

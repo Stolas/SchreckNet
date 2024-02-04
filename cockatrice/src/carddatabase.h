@@ -238,9 +238,20 @@ public:
     {
         return properties.keys();
     }
+
+    const bool isPropertyAList(const QString &propertyName) const
+    {
+        QMetaType propertyType = properties.value(propertyName).metaType();
+        return (propertyType.id() == QMetaType::QStringList);
+    }
+
     const QString getProperty(const QString &propertyName) const
     {
         return properties.value(propertyName).toString();
+    }
+    const QStringList getPropertyList(const QString &propertyName) const
+    {
+        return properties.value(propertyName).toStringList();
     }
     void setProperty(const QString &_name, const QString &_value)
     {
