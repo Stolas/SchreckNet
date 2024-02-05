@@ -343,6 +343,12 @@ public:
     void setPowTough(const QString &value);
 
     // methods using per-set properties
+    QString getPicURL(const QString &set) const
+    {
+        // Todo; SchreckNet should download the URL for the correct set.
+        return getProperty("url");
+    }
+
     QString getCustomPicURL(const QString &set) const
     {
         return getSetProperty(set, "picurl");

@@ -56,7 +56,10 @@ void PictureToLoad::populateSetUrls()
     currentSetUrls.clear();
 
     if (card && currentSet) {
+        QString setCustomURL = card->getPicURL(currentSet->getShortName());
+        /*
         QString setCustomURL = card->getCustomPicURL(currentSet->getShortName());
+        */
 
         if (!setCustomURL.isEmpty()) {
             currentSetUrls.append(setCustomURL);
@@ -427,6 +430,7 @@ void PictureLoaderWorker::picDownloadFailed()
 
 bool PictureLoaderWorker::imageIsBlackListed(const QByteArray &picData)
 {
+    /* SchreckNet: Todo; fix the blacklist */
     QString md5sum = QCryptographicHash::hash(picData, QCryptographicHash::Md5).toHex();
     return md5Blacklist.contains(md5sum);
 }

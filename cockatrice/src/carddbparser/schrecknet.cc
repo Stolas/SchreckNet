@@ -115,7 +115,14 @@ QVariantHash SchrecknetParser::loadCardPropertiesFromXml(QXmlStreamReader &xml)
 
         auto xmlName = xml.name().toString();
         if (!xmlName.isEmpty()) {
-            properties.insert(xmlName, xml.readElementText(QXmlStreamReader::IncludeChildElements));
+            QVariant xmlValue = QVariant();
+            if (xmlName == "FOR_ALL_ARRAYS") {
+                  auto isChar = xml.isCharacters();
+                 auto test = xml.readElementText(QXmlStreamReader::IncludeChildElements);
+            } else {
+                xmlValue = xml.readElementText(QXmlStreamReader::IncludeChildElements);
+            }
+            properties.insert(xmlName, xmlValue);
         }
     }
     return properties;
@@ -164,10 +171,7 @@ void SchrecknetParser::loadCardsFromXml(QXmlStreamReader &xml)
                     tableRow = xml.readElementText(QXmlStreamReader::IncludeChildElements).toInt();
                 } else if (xmlName == "cipt") {
                     cipt = (xml.readElementText(QXmlStreamReader::IncludeChildElements) == "1");
-                } else if (xmlName == "upsidedown") {
-                    upsideDown = (xml.readElementText(QXmlStreamReader::IncludeChildElements) == "1");
-                    // sets
-                } else if (xmlName == "set") {
+                } else if (xmlName == "set") {// sets
                     // NOTE: attributes but be read before readElementText()
                     QXmlStreamAttributes attrs = xml.attributes();
                     QString setName = xml.readElementText(QXmlStreamReader::IncludeChildElements);
