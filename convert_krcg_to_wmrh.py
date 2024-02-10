@@ -126,8 +126,7 @@ def find_cards(jobj):
 
 def create_wmrh():
     wmrh = {'meta' :[], 'sets': [], 'cards': []}
-    wmrh['meta'] = {"generate_date": datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}
-    wmrh['version'] = '1.0'
+    wmrh['meta'] = {"generate_date": datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), 'version': '1.0'}
     return wmrh
 
 if __name__ == '__main__':
