@@ -26,7 +26,7 @@
 #include <QtConcurrent>
 #include <QtGui>
 
-#define VTES_CARDDB_URL "https://static.krcg.org/data/vtes.json"
+#define VTES_CARDDB_URL "https://raw.githubusercontent.com/Stolas/SchreckNet/master/wmrh.json"
 
 // Todo; Add Custom VTES Token and Spoilers.
 #define TOKENS_URL "https://raw.githubusercontent.com/Cockatrice/Magic-Token/master/tokens.xml"

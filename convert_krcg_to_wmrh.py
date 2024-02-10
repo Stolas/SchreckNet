@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+#
+# Copyright (c) 2024, SchreckNet Authors
+#
+# SPDX-License-Identifier: BSD-3-Clause
+##
 
 import requests
 import json
@@ -87,7 +92,7 @@ class Card():
         self.name = jobj['name']
         self.printed_name = jobj['printed_name']
         self.types = jobj['types']
-        self.is_crypt =  self.types in ['Vampire', 'Imbeud']
+        self.is_crypt = "Vampire" in self.types or "Imbeud" in self.types
         self.clans = jobj.get('clans', None)
         self.url = jobj['url']
         self.group = jobj.get('group', None)
