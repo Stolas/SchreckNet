@@ -26,11 +26,11 @@
 #include <QtConcurrent>
 #include <QtGui>
 
-#define VTES_CARDDB_URL "https://raw.githubusercontent.com/Stolas/SchreckNet/master/wmrh.json"
+#define VTES_CARDDB_URL "https://raw.githubusercontent.com/Stolas/SchreckNet-WMRH-CardDB/master/schrecknet_wmrh.xml"
+#define TOKENS_URL "https://raw.githubusercontent.com/Stolas/SchreckNet-WMRH-CardDB/master/tokens.xml"
 
-// Todo; Add Custom VTES Token and Spoilers.
-#define TOKENS_URL "https://raw.githubusercontent.com/Cockatrice/Magic-Token/master/tokens.xml"
-#define SPOILERS_URL "https://raw.githubusercontent.com/Cockatrice/Magic-Spoiler/files/spoiler.xml"
+// Todo; make soilers
+#define SPOILERS_URL "https://raw.githubusercontent.com/Stolas/SchreckNet-Spoiler/files/spoiler.xml"
 
 OracleWizard::OracleWizard(QWidget *parent) : QWizard(parent)
 {
@@ -397,7 +397,8 @@ void LoadSetsPage::readSetsFromByteArray(QByteArray _data)
 
 void LoadSetsPage::readSetsFromByteArrayRef(QByteArray &_data)
 {
-    if (_data.startsWith("[")) {
+    // SchreckNet; it is a bit of a waste to parse the data I'll convert to XML serverside.
+    if (_data.startsWith("{")) {
         // Start the computation.
         jsonData = std::move(_data);
         future = QtConcurrent::run([this] { return wizard()->importer->readSetsFromByteArray(std::move(jsonData)); });

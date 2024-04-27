@@ -21,46 +21,77 @@ OracleImporter::OracleImporter(const QString &_dataDir, QObject *parent) : CardD
 
 bool OracleImporter::readSetsFromByteArray(const QByteArray &data)
 {
-    // Schrecknet Note: This is _very_ sub-optimal but as VTES doesn't release like a maniac we can just download everything at one go.
-    //                  But we keep it the Cockatrice way, even though we do way to many loops this way..
-    //                  We'll fix it when it becomes a problem.
     QList<SetToDownload> newSetList;
     QSet<QString> setNames;
     QList<QVariant> setCards;
 
     bool ok;
 
-    auto cardArray = QtJson::Json::parse(QString(data), ok).toJsonArray();
+    auto jsonMap = QtJson::Json::parse(QString(data), ok).toMap();
     if (!ok) {
         qDebug() << "error: QtJson::Json::parse()";
         return false;
     }
+    auto setList = jsonMap.value("sets").toList();
+    auto cardList = jsonMap.value("cards").toList();
+    auto setcnt = setList.size();
+    auto cardcnt = cardList.size();
 
-    auto size = cardArray.size();
-    Q_FOREACH (auto card, cardArray) {
-        auto cardSets = card.toObject().value("sets").toObject();
-        // For each Set the card has.
-        Q_FOREACH (auto setName, cardSets.keys()) {
-            // Normalize all Promo sets.
-            if (setName.toLower().contains("promo")) { setName = "Promo"; }
+    Q_FOREACH(QVariant set, setList) {
+        auto setMap = set.toMap();
+        auto releaseDate = setMap.value("release_date").toString();
+        auto shortName = setMap.value("short_name").toString();
+        auto setName = setMap.value("name").toString();
 
-            // Check if in a known set.
-            bool knownSet = false;
-            Q_FOREACH (auto set_, newSetList) {
-                if (set_.getLongName() == setName) {
-                    // Set is known, and add to list.
-                    auto num = set_.addCard(card.toObject());
-                    knownSet = true;
-                    break;
-                }
+        /* Todo; For each minion (vamps and allies) calculate Bleed, Strength  For Vamps also Votes and for allies also life. */
+        /* X life. X strength, X bleed. */
+
+        // Todo; SchreckNet should instead of for each set go over all
+        //                  cards it should add all sets and then for
+        //                  each card add to the correct sets.
+        setCards.empty();
+        Q_FOREACH (QVariant card, cardList) {
+            // Todo; SchreckNet, handle cards like remove the lists..
+            auto cardMap = card.toMap();
+            auto name = cardMap.value("name").toString();
+            
+            auto cardSets = cardMap.value("sets").toList();
+            if (cardSets.contains(shortName)) {
+                setCards.append(card);
             }
-            if (!knownSet) {
-                setCards.empty();
-                setCards.append(card.toObject());
-                newSetList.append(SetToDownload(setName, setCards));
-            }
+
         }
+
+        newSetList.append(SetToDownload(setName, shortName, setCards));
     }
+
+
+
+    // auto size = cardArray.size();
+    // Q_FOREACH (auto card, cardArray) {
+    //     auto cardSets = card.toObject().value("sets").toObject();
+    //     // For each Set the card has.
+    //     Q_FOREACH (auto setName, cardSets.keys()) {
+    //         // Normalize all Promo sets.
+    //         if (setName.toLower().contains("promo")) { setName = "Promo"; }
+
+    //         // Check if in a known set.
+    //         bool knownSet = false;
+    //         Q_FOREACH (auto set_, newSetList) {
+    //             if (set_.getLongName() == setName) {
+    //                 // Set is known, and add to list.
+    //                 auto num = set_.addCard(card.toObject());
+    //                 knownSet = true;
+    //                 break;
+    //             }
+    //         }
+    //         if (!knownSet) {
+    //             setCards.empty();
+    //             setCards.append(card.toObject());
+    //             newSetList.append(SetToDownload(setName, setCards));
+    //         }
+    //     }
+    // }
 
 
 

@@ -6,10 +6,10 @@
 #include <QXmlStreamReader>
 #include <version_string.h>
 
-#define SCHRECKNET_TAGNAME "schrecknet_carddatabase"
+#define SCHRECKNET_TAGNAME "wmrh_carddatabase"
 #define SCHRECKNET_TAGVER 1
 #define SCHRECKNET_SCHEMALOCATION                                                                                 \
-    "https://raw.githubusercontent.com/Cockatrice/Cockatrice/master/doc/carddatabase_v4/cards.xsd"
+    "https://raw.githubusercontent.com/Stolas/SchreckNet-WMRH-CardDB/master/cards.xsd"
 /* Todo; set location. */
 
 bool SchrecknetParser::getCanParseFile(const QString &fileName, QIODevice &device)
