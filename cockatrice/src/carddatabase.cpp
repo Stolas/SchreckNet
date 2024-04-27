@@ -309,7 +309,7 @@ QString CardInfo::simplifyName(const QString &name)
 
     // So Aetherling would work, but not Ætherling since 'Æ' would get replaced
     // with nothing.
-    simpleName.replace("æ", "ae");
+    simpleName.replace("™", "TM");
 
     // Replace Jötun Grunt with Jotun Grunt.
     simpleName = simpleName.normalized(QString::NormalizationForm_KD);

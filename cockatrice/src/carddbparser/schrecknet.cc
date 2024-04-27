@@ -105,28 +105,28 @@ void SchrecknetParser::loadSetsFromXml(QXmlStreamReader &xml)
     }
 }
 
-QVariantHash SchrecknetParser::loadCardPropertiesFromXml(QXmlStreamReader &xml)
-{
-    QVariantHash properties = QVariantHash();
-    while (!xml.atEnd()) {
-        if (xml.readNext() == QXmlStreamReader::EndElement) {
-            break;
-        }
-
-        auto xmlName = xml.name().toString();
-        if (!xmlName.isEmpty()) {
-            QVariant xmlValue = QVariant();
-            if (xmlName == "FOR_ALL_ARRAYS") {
-                  auto isChar = xml.isCharacters();
-                 auto test = xml.readElementText(QXmlStreamReader::IncludeChildElements);
-            } else {
-                xmlValue = xml.readElementText(QXmlStreamReader::IncludeChildElements);
-            }
-            properties.insert(xmlName, xmlValue);
-        }
-    }
-    return properties;
-}
+// QVariantHash SchrecknetParser::loadCardPropertiesFromXml(QXmlStreamReader &xml)
+// {
+//     QVariantHash properties = QVariantHash();
+//     while (!xml.atEnd()) {
+//         if (xml.readNext() == QXmlStreamReader::EndElement) {
+//             break;
+//         }
+// 
+//         auto xmlName = xml.name().toString();
+//         if (!xmlName.isEmpty()) {
+//             QVariant xmlValue = QVariant();
+//             if (xmlName == "FOR_ALL_ARRAYS") {
+//                   auto isChar = xml.isCharacters();
+//                  auto test = xml.readElementText(QXmlStreamReader::IncludeChildElements);
+//             } else {
+//                 xmlValue = xml.readElementText(QXmlStreamReader::IncludeChildElements);
+//             }
+//             properties.insert(xmlName, xmlValue);
+//         }
+//     }
+//     return properties;
+// }
 
 void SchrecknetParser::loadCardsFromXml(QXmlStreamReader &xml)
 {
@@ -146,11 +146,18 @@ void SchrecknetParser::loadCardsFromXml(QXmlStreamReader &xml)
             int tableRow = 0;
             bool cipt = false;
             bool isToken = false;
+            bool isCrypt = false;
             bool upsideDown = false;
+            QList<QString> types = QList<QString>();
+            QList<QString> clans = QList<QString>();
+            QList<QString> disciplines = QList<QString>();
 
             while (!xml.atEnd()) {
                 if (xml.readNext() == QXmlStreamReader::EndElement) {
-                    break;
+                    xmlName = xml.name().toString();
+                    if (xmlName == "card") {
+                        break;
+                    }
                 }
 
                 xmlName = xml.name().toString();
@@ -163,29 +170,84 @@ void SchrecknetParser::loadCardsFromXml(QXmlStreamReader &xml)
                     text = xml.readElementText(QXmlStreamReader::IncludeChildElements);
                 } else if (xmlName == "token") {
                     isToken = static_cast<bool>(xml.readElementText(QXmlStreamReader::IncludeChildElements).toInt());
+                } else if (xmlName == "is_crypt") {
+                    isCrypt = static_cast<bool>(xml.readElementText(QXmlStreamReader::IncludeChildElements).toInt());
                     // generic properties
-                } else if (xmlName == "prop") {
-                    properties = loadCardPropertiesFromXml(xml);
-                    // positioning info
+                } else if (xmlName == "group" || xmlName == "capacity") {
+                    auto xmlValue = xml.readElementText(QXmlStreamReader::IncludeChildElements);
+                    properties.insert(xmlName, xmlValue);
+                // load list properties
+                } else if (xmlName == "types" || xmlName == "clans" || xmlName == "disciplines" || xmlName == "rulings") {
+                    while (!xml.atEnd()) {
+                        if (xml.readNext() == QXmlStreamReader::EndElement) {
+                            xmlName = xml.name().toString();
+                            if (xmlName == "types" || xmlName == "clans" || xmlName == "disciplines" ||
+                                xmlName == "rulings") {
+                                break;
+                            }
+                        }
+                        xmlName = xml.name().toString();
+
+                        if (xmlName == "type") {
+                            auto typeValue = xml.readElementText(QXmlStreamReader::IncludeChildElements);
+                            types.append(typeValue);
+                        }
+                        else if (xmlName == "clan") {
+                            auto typeValue = xml.readElementText(QXmlStreamReader::IncludeChildElements);
+                            clans.append(typeValue);
+                        }
+                        else if (xmlName == "discipline") {
+                            auto typeValue = xml.readElementText(QXmlStreamReader::IncludeChildElements);
+                            disciplines.append(typeValue);
+                        }
+                        else if (xmlName == "ruling") {
+                            /* Todo; Parse rulings. */
+                        }
+                        else if (!xmlName.isEmpty()) {
+                            qDebug() << "[SchrecknetParser] Unknown value in a list-type" << xmlName
+                                     << ", trying to continue anyway";
+                            xml.skipCurrentElement();
+                        }
+
+                    }
+
+                // positioning info
                 } else if (xmlName == "tablerow") {
                     tableRow = xml.readElementText(QXmlStreamReader::IncludeChildElements).toInt();
-                } else if (xmlName == "cipt") {
-                    cipt = (xml.readElementText(QXmlStreamReader::IncludeChildElements) == "1");
-                } else if (xmlName == "set") {// sets
-                    // NOTE: attributes but be read before readElementText()
-                    QXmlStreamAttributes attrs = xml.attributes();
-                    QString setName = xml.readElementText(QXmlStreamReader::IncludeChildElements);
-                    auto set = internalAddSet(setName);
-                    if (set->getEnabled()) {
-                        CardInfoPerSet setInfo(set);
-                        for (QXmlStreamAttribute attr : attrs) {
-                            QString attrName = attr.name().toString();
-                            if (attrName == "picURL")
-                                attrName = "picurl";
-                            setInfo.setProperty(attrName, attr.value().toString());
+                } else if (xmlName == "sets") {
+                    while (!xml.atEnd()) {
+                        if (xml.readNext() == QXmlStreamReader::EndElement) {
+                            xmlName = xml.name().toString();
+                            if (xmlName == "sets") { break; }
                         }
-                        _sets.insert(setName, setInfo);
+
+                        xmlName = xml.name().toString();
+                        if (xmlName == "set") {
+                            // NOTE: attributes but be read before readElementText()
+                            QXmlStreamAttributes attrs = xml.attributes();
+                            QString setName = "";
+                            QString picUrl = "";
+                            for (QXmlStreamAttribute attr : attrs) {
+                                QString attrName = attr.name().toString();
+                                if (attrName == "name") {
+                                    setName = attr.value().toString();
+                                } else if (attrName == "picURL") {
+                                    picUrl =  attr.value().toString();
+                                }
+                            }
+                            if (!setName.isEmpty() && !picUrl.isEmpty()) {
+                                auto set = internalAddSet(setName);
+                                if (set->getEnabled()) {
+                                    CardInfoPerSet setInfo(set);
+                                    setInfo.setProperty("picurl", picUrl);
+
+                                    _sets.insert(setName, setInfo);
+                                }
+                            }
+                        }
                     }
+
+
                     // related cards
                 } else if (xmlName == "related" || xmlName == "reverse-related") {
                     CardRelation::AttachType attachType = CardRelation::DoesNotAttach;
@@ -229,6 +291,8 @@ void SchrecknetParser::loadCardsFromXml(QXmlStreamReader &xml)
                     } else {
                         relatedCards << relation;
                     }
+                } else if (xmlName == "printed_name" || xmlName == "url") {
+                    /* Ignore this one */
                 } else if (!xmlName.isEmpty()) {
                     qDebug() << "[SchrecknetParser] Unknown card property" << xmlName
                              << ", trying to continue anyway";
@@ -236,6 +300,8 @@ void SchrecknetParser::loadCardsFromXml(QXmlStreamReader &xml)
                 }
             }
 
+            cipt = false;
+            /* Todo pass isCrypt*/
             CardInfoPtr newCard = CardInfo::newInstance(name, text, isToken, properties, relatedCards,
                                                         reverseRelatedCards, _sets, cipt, tableRow, upsideDown);
             emit addCard(newCard);
