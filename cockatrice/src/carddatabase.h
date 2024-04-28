@@ -173,7 +173,7 @@ private:
     // cached set names
     QString setsNames;
     // positioning properties; used by UI
-    bool cipt;
+    bool isCrypt;
     int tableRow;
     bool upsideDownArt;
 
@@ -185,7 +185,7 @@ public:
                       const QList<CardRelation *> &_relatedCards = QList<CardRelation *>(),
                       const QList<CardRelation *> &_reverseRelatedCards = QList<CardRelation *>(),
                       CardInfoPerSetMap _sets = CardInfoPerSetMap(),
-                      bool _cipt = false,
+                      bool _isCrypt = false,
                       int _tableRow = 0,
                       bool _upsideDownArt = false);
     ~CardInfo() override;
@@ -197,7 +197,7 @@ public:
                                    const QList<CardRelation *> &_relatedCards = QList<CardRelation *>(),
                                    const QList<CardRelation *> &_reverseRelatedCards = QList<CardRelation *>(),
                                    CardInfoPerSetMap _sets = CardInfoPerSetMap(),
-                                   bool _cipt = false,
+                                   bool _isCrypt = false,
                                    int _tableRow = 0,
                                    bool _upsideDownArt = false);
 
@@ -312,9 +312,9 @@ public:
     }
 
     // positioning
-    bool getCipt() const
+    bool getIsCrypt() const
     {
-        return cipt;
+        return isCrypt;
     }
     int getTableRow() const
     {
@@ -339,13 +339,18 @@ public:
     const QString getLoyalty() const;
     const QString getMainCardType() const;
     const QString getManaCost() const;
-    const QString getPowTough() const;
+    const QString getBleedVoteStrength() const;
+    const QString getBleed() const;
+    const QString getVotes() const;
+    const QString getClans() const;
+    const QString getPoolCost() const;
+    const QString getBloodCost() const;
+    const QString getGroup() const;
     void setPowTough(const QString &value);
 
     // methods using per-set properties
-    QString getPicURL(const QString &set) const
+    QString getPicURL() const
     {
-        // Todo; SchreckNet should download the URL for the correct set.
         return getProperty("url");
     }
 

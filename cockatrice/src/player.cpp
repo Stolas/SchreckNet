@@ -465,26 +465,32 @@ Player::Player(const ServerInfo_User &info, int _id, bool _local, bool _judge, T
     connect(aUnattach, SIGNAL(triggered()), this, SLOT(actUnattach()));
     aDrawArrow = new QAction(this);
     connect(aDrawArrow, SIGNAL(triggered()), this, SLOT(actDrawArrow()));
-    aIncP = new QAction(this);
-    connect(aIncP, SIGNAL(triggered()), this, SLOT(actIncP()));
-    aDecP = new QAction(this);
-    connect(aDecP, SIGNAL(triggered()), this, SLOT(actDecP()));
-    aIncT = new QAction(this);
-    connect(aIncT, SIGNAL(triggered()), this, SLOT(actIncT()));
-    aDecT = new QAction(this);
-    connect(aDecT, SIGNAL(triggered()), this, SLOT(actDecT()));
-    aIncPT = new QAction(this);
-    connect(aIncPT, SIGNAL(triggered()), this, SLOT(actIncPT()));
-    aDecPT = new QAction(this);
-    connect(aDecPT, SIGNAL(triggered()), this, SLOT(actDecPT()));
-    aFlowP = new QAction(this);
-    connect(aFlowP, SIGNAL(triggered()), this, SLOT(actFlowP()));
-    aFlowT = new QAction(this);
-    connect(aFlowT, SIGNAL(triggered()), this, SLOT(actFlowT()));
-    aSetPT = new QAction(this);
-    connect(aSetPT, SIGNAL(triggered()), this, SLOT(actSetPT()));
-    aResetPT = new QAction(this);
-    connect(aResetPT, SIGNAL(triggered()), this, SLOT(actResetPT()));
+    aIncB = new QAction(this);
+    connect(aIncB, SIGNAL(triggered()), this, SLOT(actIncB()));
+    aDecB = new QAction(this);
+    connect(aDecB, SIGNAL(triggered()), this, SLOT(actDecB()));
+    aIncV = new QAction(this);
+    connect(aIncV, SIGNAL(triggered()), this, SLOT(actIncV()));
+    aDecV = new QAction(this);
+    connect(aDecB, SIGNAL(triggered()), this, SLOT(actDecV()));
+    aIncS = new QAction(this);
+    connect(aIncS, SIGNAL(triggered()), this, SLOT(actIncS()));
+    aDecS = new QAction(this);
+    connect(aDecS, SIGNAL(triggered()), this, SLOT(actDecS()));
+    aIncBVS = new QAction(this);
+    connect(aIncBVS, SIGNAL(triggered()), this, SLOT(actIncVBS()));
+    aDecBVS = new QAction(this);
+    connect(aDecBVS, SIGNAL(triggered()), this, SLOT(actDecBVS()));
+    aFlowB = new QAction(this);
+    connect(aFlowB, SIGNAL(triggered()), this, SLOT(actFlowB()));
+    aFlowV = new QAction(this);
+    connect(aFlowV, SIGNAL(triggered()), this, SLOT(actFlowV()));
+    aFlowS = new QAction(this);
+    connect(aFlowS, SIGNAL(triggered()), this, SLOT(actFlowS()));
+    aSetBVS = new QAction(this);
+    connect(aSetBVS, SIGNAL(triggered()), this, SLOT(actSetBVS()));
+    aResetBVS = new QAction(this);
+    connect(aResetBVS, SIGNAL(triggered()), this, SLOT(actResetBVS()));
     aSetAnnotation = new QAction(this);
     connect(aSetAnnotation, SIGNAL(triggered()), this, SLOT(actSetAnnotation()));
     aFlip = new QAction(this);
@@ -834,16 +840,19 @@ void Player::retranslateUi()
     aAttach->setText(tr("Attac&h to card..."));
     aUnattach->setText(tr("Unattac&h"));
     aDrawArrow->setText(tr("&Draw arrow..."));
-    aIncP->setText(tr("&Increase power"));
-    aDecP->setText(tr("&Decrease power"));
-    aIncT->setText(tr("I&ncrease toughness"));
-    aDecT->setText(tr("D&ecrease toughness"));
-    aIncPT->setText(tr("In&crease power and toughness"));
-    aDecPT->setText(tr("Dec&rease power and toughness"));
-    aFlowP->setText(tr("Increase power and decrease toughness"));
-    aFlowT->setText(tr("Decrease power and increase toughness"));
-    aSetPT->setText(tr("Set &power and toughness..."));
-    aResetPT->setText(tr("Reset p&ower and toughness"));
+    aIncB->setText(tr("&Increase bleed"));
+    aDecB->setText(tr("&Decrease bleed"));
+    aIncV->setText(tr("I&ncrease votes"));
+    aDecV->setText(tr("D&ecrease votes"));
+    aIncS->setText(tr("I&ncrease strength"));
+    aDecS->setText(tr("D&ecrease strength"));
+    aIncBVS->setText(tr("In&crease bleed, votes, and strength"));
+    aDecBVS->setText(tr("Dec&rease bleed, votes, and strength"));
+    aFlowB->setText(tr("TODO DELETE"));
+    aFlowB->setText(tr("TODO DELETE"));
+    aFlowS->setText(tr("TODO DELETE"));
+    aSetBVS->setText(tr("Set &strength, votes, and strength..."));
+    aResetBVS->setText(tr("Reset b&eed, votes, and strength"));
     aSetAnnotation->setText(tr("&Set annotation..."));
 
     QStringList counterColors;
@@ -888,16 +897,17 @@ void Player::setShortcutsActive()
     aAttach->setShortcuts(shortcuts.getShortcut("Player/aAttach"));
     aUnattach->setShortcuts(shortcuts.getShortcut("Player/aUnattach"));
     aDrawArrow->setShortcuts(shortcuts.getShortcut("Player/aDrawArrow"));
-    aIncP->setShortcuts(shortcuts.getShortcut("Player/aIncP"));
-    aDecP->setShortcuts(shortcuts.getShortcut("Player/aDecP"));
-    aIncT->setShortcuts(shortcuts.getShortcut("Player/aIncT"));
-    aDecT->setShortcuts(shortcuts.getShortcut("Player/aDecT"));
-    aIncPT->setShortcuts(shortcuts.getShortcut("Player/aIncPT"));
-    aDecPT->setShortcuts(shortcuts.getShortcut("Player/aDecPT"));
-    aFlowP->setShortcuts(shortcuts.getShortcut("Player/aFlowP"));
-    aFlowT->setShortcuts(shortcuts.getShortcut("Player/aFlowT"));
-    aSetPT->setShortcuts(shortcuts.getShortcut("Player/aSetPT"));
-    aResetPT->setShortcuts(shortcuts.getShortcut("Player/aResetPT"));
+    aIncB->setShortcuts(shortcuts.getShortcut("Player/aIncB"));
+    aDecB->setShortcuts(shortcuts.getShortcut("Player/aDecB"));
+    aIncV->setShortcuts(shortcuts.getShortcut("Player/aIncV"));
+    aDecV->setShortcuts(shortcuts.getShortcut("Player/aDecV"));
+    aIncS->setShortcuts(shortcuts.getShortcut("Player/aIncS"));
+    aDecS->setShortcuts(shortcuts.getShortcut("Player/aDecS"));
+    aIncBVS->setShortcuts(shortcuts.getShortcut("Player/aIncBVS"));
+    aDecBVS->setShortcuts(shortcuts.getShortcut("Player/aDecBVS"));
+    aFlowB->setShortcuts(shortcuts.getShortcut("Player/aFlowB"));
+    aSetBVS->setShortcuts(shortcuts.getShortcut("Player/aSetBVS"));
+    aResetBVS->setShortcuts(shortcuts.getShortcut("Player/aResetBVS"));
     aSetAnnotation->setShortcuts(shortcuts.getShortcut("Player/aSetAnnotation"));
     aMoveToTopLibrary->setShortcuts(shortcuts.getShortcut("Player/aMoveToTopLibrary"));
     aMoveToBottomLibrary->setShortcuts(shortcuts.getShortcut("Player/aMoveToBottomLibrary"));
@@ -1648,13 +1658,13 @@ void Player::actCreateToken()
     }
 
     lastTokenName = dlg.getName();
-    lastTokenPT = dlg.getPT();
+    lastTokenBVS = dlg.getBVS();
     CardInfoPtr correctedCard = db->guessCard(lastTokenName);
     if (correctedCard) {
         lastTokenName = correctedCard->getName();
         lastTokenTableRow = TableZone::clampValidTableRow(2 - correctedCard->getTableRow());
-        if (lastTokenPT.isEmpty()) {
-            lastTokenPT = correctedCard->getPowTough();
+        if (lastTokenBVS.isEmpty()) {
+            lastTokenBVS = correctedCard->getBleedVoteStrength();
         }
     }
     lastTokenColor = dlg.getColor();
@@ -1675,7 +1685,7 @@ void Player::actCreateAnotherToken()
     cmd.set_zone("table");
     cmd.set_card_name(lastTokenName.toStdString());
     cmd.set_color(lastTokenColor.toStdString());
-    cmd.set_pt(lastTokenPT.toStdString());
+    cmd.set_bvs(lastTokenBVS.toStdString());
     cmd.set_annotation(lastTokenAnnotation.toStdString());
     cmd.set_destroy_on_zone_change(lastTokenDestroy);
     cmd.set_x(-1);
@@ -1858,7 +1868,7 @@ void Player::createCard(const CardItem *sourceCard,
             break;
     }
 
-    cmd.set_pt(cardInfo->getPowTough().toStdString());
+    cmd.set_bvs(cardInfo->getBleedVoteStrength().toStdString());
     if (SettingsCache::instance().getAnnotateTokens()) {
         cmd.set_annotation(cardInfo->getText().toStdString());
     } else {
@@ -1940,9 +1950,9 @@ void Player::setCardAttrHelper(const GameEventContext &context,
             card->setDoesntUntap(value);
             break;
         }
-        case AttrPT: {
-            emit logSetPT(this, card, avalue);
-            card->setPT(avalue);
+        case AttrBVS: {
+            emit logSetBVS(this, card, avalue);
+            card->setBleedVotesStrength(avalue);
             break;
         }
     }
@@ -2026,18 +2036,18 @@ void Player::eventCreateToken(const Event_CreateToken &event)
     CardItem *card = new CardItem(this, QString::fromStdString(event.card_name()), event.card_id());
     // use db PT if not provided in event
     if (!QString::fromStdString(event.pt()).isEmpty()) {
-        card->setPT(QString::fromStdString(event.pt()));
+        card->setBleedVotesStrength(QString::fromStdString(event.pt()));
     } else {
         CardInfoPtr dbCard = card->getInfo();
         if (dbCard) {
-            card->setPT(dbCard->getPowTough());
+            card->setBleedVotesStrength(dbCard->getBleedVoteStrength());
         }
     }
     card->setColor(QString::fromStdString(event.color()));
     card->setAnnotation(QString::fromStdString(event.annotation()));
     card->setDestroyOnZoneChange(event.destroy_on_zone_change());
 
-    emit logCreateToken(this, card->getName(), card->getPT());
+    emit logCreateToken(this, card->getName(), card->getBleedVotesStrength());
     zone->addCard(card, true, event.x(), event.y());
 }
 
@@ -2610,7 +2620,7 @@ void Player::playCard(CardItem *card, bool faceDown, bool tapped)
         QPoint gridPoint = QPoint(-1, TableZone::clampValidTableRow(2 - tableRow));
         cardToMove->set_face_down(faceDown);
         if (!faceDown) {
-            cardToMove->set_pt(info->getPowTough().toStdString());
+            cardToMove->set_bvs(info->getBleedVoteStrength().toStdString());
         }
         cardToMove->set_tapped(faceDown ? false : tapped);
         if (tableRow != 3)
@@ -2940,7 +2950,7 @@ void Player::cardMenuAction()
                     if (card->getFaceDown()) {
                         CardInfoPtr ci = card->getInfo();
                         if (ci) {
-                            cmd->set_pt(ci->getPowTough().toStdString());
+                            cmd->set_bvs(ci->getBleedVoteStrength().toStdString());
                         }
                     }
                     commandList.append(cmd);
@@ -2959,7 +2969,7 @@ void Player::cardMenuAction()
                     cmd->set_zone("table");
                     cmd->set_card_name(card->getName().toStdString());
                     cmd->set_color(card->getColor().toStdString());
-                    cmd->set_pt(card->getPT().toStdString());
+                    cmd->set_bvs(card->getBleedVotesStrength().toStdString());
                     cmd->set_annotation(card->getAnnotation().toStdString());
                     cmd->set_destroy_on_zone_change(true);
                     cmd->set_x(-1);
@@ -3072,29 +3082,30 @@ void Player::cardMenuAction()
     }
 }
 
-void Player::actIncPT(int deltaP, int deltaT)
+void Player::actIncBVS(int deltaB, int deltaV, int deltaS)
 {
+    /* Todo; make this work. */
     int playerid = id;
 
     QList<const ::google::protobuf::Message *> commandList;
     for (const auto &item : scene()->selectedItems()) {
         auto *card = static_cast<CardItem *>(item);
-        QString pt = card->getPT();
-        const auto ptList = parsePT(pt);
+        QString bvs = card->getBleedVotesStrength();
+        const auto bvsList = parseBVS(bvs);
         QString newpt;
-        if (ptList.isEmpty()) {
-            newpt = QString::number(deltaP) + (deltaT ? "/" + QString::number(deltaT) : "");
-        } else if (ptList.size() == 1) {
-            newpt = QString::number(ptList.at(0).toInt() + deltaP) + (deltaT ? "/" + QString::number(deltaT) : "");
+        if (bvsList.isEmpty()) {
+            newpt = QString::number(deltaB) + (deltaB ? "/" + QString::number(deltaB) : "");
+        } else if (bvsList.size() == 1) {
+            newpt = QString::number(bvsList.at(0).toInt() + deltaB) + (deltaB ? "/" + QString::number(deltaB) : "");
         } else {
             newpt =
-                QString::number(ptList.at(0).toInt() + deltaP) + "/" + QString::number(ptList.at(1).toInt() + deltaT);
+                QString::number(bvsList.at(0).toInt() + deltaB) + "/" + QString::number(bvsList.at(1).toInt() + deltaB);
         }
 
         auto *cmd = new Command_SetCardAttr;
         cmd->set_zone(card->getZone()->getName().toStdString());
         cmd->set_card_id(card->getId());
-        cmd->set_attribute(AttrPT);
+        cmd->set_attribute(AttrBVS);
         cmd->set_attr_value(newpt.toStdString());
         commandList.append(cmd);
 
@@ -3106,28 +3117,28 @@ void Player::actIncPT(int deltaP, int deltaT)
     game->sendGameCommand(prepareGameCommand(commandList), playerid);
 }
 
-void Player::actResetPT()
+void Player::actResetBVS()
 {
     int playerid = id;
     QList<const ::google::protobuf::Message *> commandList;
     for (const auto &item : scene()->selectedItems()) {
         auto *card = static_cast<CardItem *>(item);
-        QString ptString;
+        QString bvsString;
         if (!card->getFaceDown()) { // leave the pt empty if the card is face down
             CardInfoPtr info = card->getInfo();
             if (info) {
-                ptString = info->getPowTough();
+                bvsString = info->getBleedVoteStrength();
             }
         }
-        if (ptString == card->getPT()) {
+        if (bvsString == card->getBleedVotesStrength()) {
             continue;
         }
         QString zoneName = card->getZone()->getName();
         auto *cmd = new Command_SetCardAttr;
         cmd->set_zone(zoneName.toStdString());
         cmd->set_card_id(card->getId());
-        cmd->set_attribute(AttrPT);
-        cmd->set_attr_value(ptString.toStdString());
+        cmd->set_attribute(AttrBVS);
+        cmd->set_attr_value(bvsString.toStdString());
         commandList.append(cmd);
 
         if (local) {
@@ -3140,60 +3151,60 @@ void Player::actResetPT()
     }
 }
 
-QVariantList Player::parsePT(const QString &pt)
+QVariantList Player::parseBVS(const QString &bvs)
 {
-    QVariantList ptList = QVariantList();
-    if (!pt.isEmpty()) {
-        int sep = pt.indexOf('/');
+    QVariantList bvsList = QVariantList();
+    if (!bvs.isEmpty()) {
+        int sep = bvs.indexOf('/');
         if (sep == 0) {
-            ptList.append(QVariant(pt.mid(1))); // cut off starting '/' and take full string
+            bvsList.append(QVariant(bvs.mid(1))); // cut off starting '/' and take full string
         } else {
             int start = 0;
             for (;;) {
-                QString item = pt.mid(start, sep - start);
+                QString item = bvs.mid(start, sep - start);
                 if (item.isEmpty()) {
-                    ptList.append(QVariant(QString()));
+                    bvsList.append(QVariant(QString()));
                 } else if (item[0] == '+') {
-                    ptList.append(QVariant(item.mid(1).toInt())); // add as int
+                    bvsList.append(QVariant(item.mid(1).toInt())); // add as int
                 } else if (item[0] == '-') {
-                    ptList.append(QVariant(item.toInt())); // add as int
+                    bvsList.append(QVariant(item.toInt())); // add as int
                 } else {
-                    ptList.append(QVariant(item)); // add as qstring
+                    bvsList.append(QVariant(item)); // add as qstring
                 }
                 if (sep == -1) {
                     break;
                 }
                 start = sep + 1;
-                sep = pt.indexOf('/', start);
+                sep = bvs.indexOf('/', start);
             }
         }
     }
-    return ptList;
+    return bvsList;
 }
 
-void Player::actSetPT()
+void Player::actSetBVS()
 {
-    QString oldPT;
+    QString oldBVS;
     int playerid = id;
 
     auto sel = scene()->selectedItems();
     for (const auto &item : sel) {
         auto *card = static_cast<CardItem *>(item);
-        if (!card->getPT().isEmpty()) {
-            oldPT = card->getPT();
+        if (!card->getBleedVotesStrength().isEmpty()) {
+            oldBVS = card->getBleedVotesStrength();
         }
     }
     bool ok;
     dialogSemaphore = true;
-    QString pt =
-        getTextWithMax(game, tr("Change power/toughness"), tr("Change stats to:"), QLineEdit::Normal, oldPT, &ok);
+    QString bvs =
+        getTextWithMax(game, tr("Change bleed/strength/votes"), tr("Change stats to:"), QLineEdit::Normal, oldBVS, &ok);
     dialogSemaphore = false;
     if (clearCardsToDelete() || !ok) {
         return;
     }
 
-    const auto ptList = parsePT(pt);
-    bool empty = ptList.isEmpty();
+    const auto bvsList = parseBVS(bvs);
+    bool empty = bvsList.isEmpty();
 
     QList<const ::google::protobuf::Message *> commandList;
     for (const auto &item : sel) {
@@ -3201,27 +3212,27 @@ void Player::actSetPT()
         auto *cmd = new Command_SetCardAttr;
         QString newpt = QString();
         if (!empty) {
-            const auto oldpt = parsePT(card->getPT());
-            int ptIter = 0;
-            for (const auto &_item : ptList) {
+            const auto oldbvs = parseBVS(card->getBleedVotesStrength());
+            int bvsIter = 0;
+            for (const auto &_item : bvsList) {
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
                 if (_item.typeId() == QMetaType::Type::Int) {
 #else
                 if (_item.type() == QVariant::Int) {
 #endif
-                    int oldItem = ptIter < oldpt.size() ? oldpt.at(ptIter).toInt() : 0;
+                    int oldItem = bvsIter < oldbvs.size() ? oldbvs.at(bvsIter).toInt() : 0;
                     newpt += '/' + QString::number(oldItem + _item.toInt());
                 } else {
                     newpt += '/' + _item.toString();
                 }
-                ++ptIter;
+                ++bvsIter;
             }
             newpt = newpt.mid(1);
         }
 
         cmd->set_zone(card->getZone()->getName().toStdString());
         cmd->set_card_id(card->getId());
-        cmd->set_attribute(AttrPT);
+        cmd->set_attribute(AttrBVS);
         cmd->set_attr_value(newpt.toStdString());
         commandList.append(cmd);
 
@@ -3242,44 +3253,59 @@ void Player::actDrawArrow()
     game->getActiveCard()->drawArrow(Qt::red);
 }
 
-void Player::actIncP()
+void Player::actIncB()
 {
-    actIncPT(1, 0);
+    actIncBVS(1, 0, 0);
 }
 
-void Player::actDecP()
+void Player::actDecB()
 {
-    actIncPT(-1, 0);
+    actIncBVS(-1, 0, 0);
 }
 
-void Player::actIncT()
+void Player::actIncV()
 {
-    actIncPT(0, 1);
+    actIncBVS(0, 1, 0);
 }
 
-void Player::actDecT()
+void Player::actDecV()
 {
-    actIncPT(0, -1);
+    actIncBVS(0, -1, 0);
 }
 
-void Player::actIncPT()
+void Player::actIncS()
 {
-    actIncPT(1, 1);
+    actIncBVS(0, 0, 1);
 }
 
-void Player::actDecPT()
+void Player::actDecS()
 {
-    actIncPT(-1, -1);
+    actIncBVS(0, 0, -1);
 }
 
-void Player::actFlowP()
+void Player::actIncBVS()
 {
-    actIncPT(1, -1);
+    actIncBVS(1, 1, 1);
 }
 
-void Player::actFlowT()
+void Player::actDecBVS()
 {
-    actIncPT(-1, 1);
+    actIncBVS(-1, -1, -1);
+}
+
+void Player::actFlowB()
+{
+    actIncBVS(1, -1, 0);
+}
+
+void Player::actFlowV()
+{
+    actIncBVS(-1, 1, 0);
+}
+
+void Player::actFlowS()
+{
+    actIncBVS(-1, 1, 0);
 }
 
 void AnnotationDialog::keyPressEvent(QKeyEvent *event)
@@ -3428,8 +3454,7 @@ void Player::actPlay()
         return;
     }
 
-    bool cipt = game->getActiveCard()->getInfo() ? game->getActiveCard()->getInfo()->getCipt() : false;
-    playCard(game->getActiveCard(), false, cipt);
+    playCard(game->getActiveCard(), false, false);
 }
 
 void Player::actHide()
@@ -3487,7 +3512,7 @@ void Player::updateCardMenu(const CardItem *card)
     }
 
     QMenu *cardMenu = card->getCardMenu();
-    QMenu *ptMenu = card->getPTMenu();
+    QMenu *ptMenu = card->getBVSMenu();
     QMenu *moveMenu = card->getMoveMenu();
 
     cardMenu->clear();
@@ -3526,19 +3551,23 @@ void Player::updateCardMenu(const CardItem *card)
                 // Card is on the battlefield
 
                 if (ptMenu->isEmpty()) {
-                    ptMenu->addAction(aIncP);
-                    ptMenu->addAction(aDecP);
-                    ptMenu->addAction(aFlowP);
+                    ptMenu->addAction(aIncB);
+                    ptMenu->addAction(aDecB);
+                    ptMenu->addAction(aFlowB);
                     ptMenu->addSeparator();
-                    ptMenu->addAction(aIncT);
-                    ptMenu->addAction(aDecT);
-                    ptMenu->addAction(aFlowT);
+                    ptMenu->addAction(aIncV);
+                    ptMenu->addAction(aDecV);
+                    ptMenu->addAction(aFlowV);
                     ptMenu->addSeparator();
-                    ptMenu->addAction(aIncPT);
-                    ptMenu->addAction(aDecPT);
+                    ptMenu->addAction(aIncS);
+                    ptMenu->addAction(aDecS);
+                    ptMenu->addAction(aFlowS);
                     ptMenu->addSeparator();
-                    ptMenu->addAction(aSetPT);
-                    ptMenu->addAction(aResetPT);
+                    ptMenu->addAction(aIncBVS);
+                    ptMenu->addAction(aDecBVS);
+                    ptMenu->addSeparator();
+                    ptMenu->addAction(aSetBVS);
+                    ptMenu->addAction(aResetBVS);
                 }
 
                 cardMenu->addAction(aTap);
@@ -3677,8 +3706,8 @@ void Player::addRelatedCardActions(const CardItem *card, QMenu *cardMenu)
             continue;
 
         QString relatedCardName;
-        if (relatedCard->getPowTough().size() > 0) {
-            relatedCardName = relatedCard->getPowTough() + " " + relatedCard->getName(); // "n/n name"
+        if (relatedCard->getBleedVoteStrength().size() > 0) {
+            relatedCardName = relatedCard->getBleedVoteStrength() + " " + relatedCard->getName(); // "n/n name"
         } else {
             relatedCardName = relatedCard->getName(); // "name"
         }
@@ -3804,7 +3833,7 @@ void Player::setLastToken(CardInfoPtr cardInfo)
 
     lastTokenName = cardInfo->getName();
     lastTokenColor = cardInfo->getColors().isEmpty() ? QString() : cardInfo->getColors().left(1).toLower();
-    lastTokenPT = cardInfo->getPowTough();
+    lastTokenBVS = cardInfo->getBleedVoteStrength();
     lastTokenAnnotation = SettingsCache::instance().getAnnotateTokens() ? cardInfo->getText() : "";
     lastTokenTableRow = TableZone::clampValidTableRow(2 - cardInfo->getTableRow());
     lastTokenDestroy = true;

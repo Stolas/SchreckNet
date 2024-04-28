@@ -4,6 +4,36 @@
 #include <QCoreApplication>
 #include <QString>
 
+namespace Vtes
+{
+QString const CardType("type");
+QString const BloodCost("bloodcost");
+QString const PoolCost("poolcost");
+QString const Clans("clans");
+QString const Bleed("bleed");
+QString const Votes("votes");
+QString const Group("group");
+
+inline static const QString getNicePropertyName(QString key)
+{
+    if (key == CardType)
+        return QCoreApplication::translate("Vtes", "Card Type");
+    if (key == BloodCost)
+        return QCoreApplication::translate("Vtes", "Blood Cost");
+    if (key == PoolCost)
+        return QCoreApplication::translate("Vtes", "Pool Cost");
+    if (key == Clans)
+        return QCoreApplication::translate("Vtes", "Clans");
+    if (key == Votes)
+        return QCoreApplication::translate("Vtes", "Votes");
+    if (key == Group)
+        return QCoreApplication::translate("Vtes", "Group");
+    return key;
+}
+}; // namespace Vtes
+
+
+
 /*
  * Collection of traslatable property names used in games,
  * so we can use Game::Property instead of hardcoding strings.

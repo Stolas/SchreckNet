@@ -10,7 +10,7 @@ message ServerInfo_Card {
     optional bool tapped = 6;
     optional bool attacking = 7;
     optional string color = 8;
-    optional string pt = 9;
+    optional string bvs = 9;
     optional string annotation = 10;
     optional bool destroy_on_zone_change = 11;
     optional bool doesnt_untap = 12;

@@ -662,7 +662,7 @@ void MessageLogWidget::logSetDoesntUntap(Player *player, CardItem *card, bool do
     appendHtmlServerMessage(str.arg(sanitizeHtml(player->getName())).arg(cardLink(card->getName())));
 }
 
-void MessageLogWidget::logSetPT(Player *player, CardItem *card, QString newPT)
+void MessageLogWidget::logSetPT(Player *player, CardItem *card, QString newBVS)
 {
     if (currentContext == MessageContext_MoveCard) {
         return;
@@ -675,16 +675,16 @@ void MessageLogWidget::logSetPT(Player *player, CardItem *card, QString newPT)
         name = cardLink(name);
     }
     QString playerName = sanitizeHtml(player->getName());
-    if (newPT.isEmpty()) {
+    if (newBVS.isEmpty()) {
         appendHtmlServerMessage(tr("%1 removes the PT of %2.").arg(playerName).arg(name));
     } else {
-        QString oldPT = card->getPT();
-        if (oldPT.isEmpty()) {
+        QString oldBVS = card->getBleedVotesStrength();
+        if (oldBVS.isEmpty()) {
             appendHtmlServerMessage(
-                tr("%1 changes the PT of %2 from nothing to %4.").arg(playerName).arg(name).arg(newPT));
+                tr("%1 changes the BVS of %2 from nothing to %4.").arg(playerName).arg(name).arg(newBVS));
         } else {
             appendHtmlServerMessage(
-                tr("%1 changes the PT of %2 from %3 to %4.").arg(playerName).arg(name).arg(oldPT).arg(newPT));
+                tr("%1 changes the BVS of %2 from %3 to %4.").arg(playerName).arg(name).arg(oldBVS).arg(newBVS));
         }
     }
 }

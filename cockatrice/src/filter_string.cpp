@@ -309,12 +309,12 @@ static void setupParserRules()
     };
     search["PowerQuery"] = [](const peg::SemanticValues &sv) -> Filter {
         NumberMatcher matcher = sv[0].get<NumberMatcher>();
-        return [=](CardData x) -> bool { return matcher(x->getPowTough().split("/")[0].toInt()); };
+        return [=](CardData x) -> bool { return matcher(x->getBleedVoteStrength().split("/")[0].toInt()); };
     };
     search["ToughnessQuery"] = [](const peg::SemanticValues &sv) -> Filter {
         NumberMatcher matcher = sv[0].get<NumberMatcher>();
         return [=](CardData x) -> bool {
-            auto parts = x->getPowTough().split("/");
+            auto parts = x->getBleedVoteStrength().split("/");
             return matcher(parts.length() == 2 ? parts[1].toInt() : 0);
         };
     };

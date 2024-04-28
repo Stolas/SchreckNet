@@ -56,22 +56,16 @@ void PictureToLoad::populateSetUrls()
     currentSetUrls.clear();
 
     if (card && currentSet) {
-        QString setCustomURL = card->getPicURL(currentSet->getShortName());
-        /*
         QString setCustomURL = card->getCustomPicURL(currentSet->getShortName());
-        */
 
         if (!setCustomURL.isEmpty()) {
             currentSetUrls.append(setCustomURL);
         }
     }
 
-    for (const QString &urlTemplate : urlTemplates) {
-        QString transformedUrl = transformUrl(urlTemplate);
-
-        if (!transformedUrl.isEmpty()) {
-            currentSetUrls.append(transformedUrl);
-        }
+    auto picUrl = card->getPicURL();
+    if (!picUrl.isEmpty()) {
+        currentSetUrls.append(picUrl);
     }
 
     /* Call nextUrl to make sure currentUrl is up-to-date

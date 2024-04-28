@@ -26,7 +26,7 @@ private:
     bool attacking;
     QMap<int, int> counters;
     QString annotation;
-    QString pt;
+    QString bvs;
     bool destroyOnZoneChange;
     bool doesntUntap;
     QPoint gridPoint;
@@ -34,7 +34,7 @@ private:
     CardItem *attachedTo;
     QList<CardItem *> attachedCards;
 
-    QMenu *cardMenu, *ptMenu, *moveMenu;
+    QMenu *cardMenu, *bvsMenu, *moveMenu;
 
     void prepareDelete();
 public slots:
@@ -107,11 +107,11 @@ public:
         return doesntUntap;
     }
     void setDoesntUntap(bool _doesntUntap);
-    QString getPT() const
+    QString getBleedVotesStrength() const
     {
-        return pt;
+        return bvs;
     }
-    void setPT(const QString &_pt);
+    void setBleedVotesStrength(const QString &_bvs);
     bool getDestroyOnZoneChange() const
     {
         return destroyOnZoneChange;
@@ -144,9 +144,9 @@ public:
     {
         return cardMenu;
     }
-    QMenu *getPTMenu() const
+    QMenu *getBVSMenu() const
     {
-        return ptMenu;
+        return bvsMenu;
     }
     QMenu *getMoveMenu() const
     {

@@ -225,11 +225,11 @@ CardInfo::CardInfo(const QString &_name,
                    const QList<CardRelation *> &_relatedCards,
                    const QList<CardRelation *> &_reverseRelatedCards,
                    CardInfoPerSetMap _sets,
-                   bool _cipt,
+                   bool _isCrypt,
                    int _tableRow,
                    bool _upsideDownArt)
     : name(_name), text(_text), isToken(_isToken), properties(std::move(_properties)), relatedCards(_relatedCards),
-      reverseRelatedCards(_reverseRelatedCards), sets(std::move(_sets)), cipt(_cipt), tableRow(_tableRow),
+      reverseRelatedCards(_reverseRelatedCards), sets(std::move(_sets)), isCrypt(_isCrypt), tableRow(_tableRow),
       upsideDownArt(_upsideDownArt)
 {
     pixmapCacheKey = QLatin1String("card_") + name;
@@ -250,12 +250,12 @@ CardInfoPtr CardInfo::newInstance(const QString &_name,
                                   const QList<CardRelation *> &_relatedCards,
                                   const QList<CardRelation *> &_reverseRelatedCards,
                                   CardInfoPerSetMap _sets,
-                                  bool _cipt,
+                                  bool _isCrypt,
                                   int _tableRow,
                                   bool _upsideDownArt)
 {
     CardInfoPtr ptr(new CardInfo(_name, _text, _isToken, std::move(_properties), _relatedCards, _reverseRelatedCards,
-                                 _sets, _cipt, _tableRow, _upsideDownArt));
+                                 _sets, _isCrypt, _tableRow, _upsideDownArt));
     ptr->setSmartPointer(ptr);
 
     for (const CardInfoPerSet &set : _sets) {
@@ -728,10 +728,45 @@ const QString CardInfo::getManaCost() const
 {
     return getProperty(Mtg::ManaCost);
 }
-const QString CardInfo::getPowTough() const
+const QString CardInfo::getBleedVoteStrength() const
 {
     return getProperty(Mtg::PowTough);
 }
+
+const QString CardInfo::getBleed() const
+{
+    return getProperty(Vtes::Bleed);
+}
+
+const QString CardInfo::getVotes() const
+{
+    return getProperty(Vtes::Votes);
+}
+
+const QString CardInfo::getClans() const
+{
+    return getProperty(Vtes::Clans);
+}
+
+const QString CardInfo::getPoolCost() const
+{
+    return getProperty(Vtes::PoolCost);
+}
+
+const QString CardInfo::getBloodCost() const
+{
+    return getProperty(Vtes::BloodCost);
+}
+
+const QString CardInfo::getGroup() const
+{
+    auto group = getProperty(Vtes::Group);
+    if (group == "0") {
+        return QString("ANY");
+    }
+    return group;
+}
+
 void CardInfo::setPowTough(const QString &value)
 {
     setProperty(Mtg::PowTough, value);

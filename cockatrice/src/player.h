@@ -135,7 +135,7 @@ signals:
     void logSetTapped(Player *player, CardItem *card, bool tapped);
     void logSetCounter(Player *player, QString counterName, int value, int oldValue);
     void logSetDoesntUntap(Player *player, CardItem *card, bool doesntUntap);
-    void logSetPT(Player *player, CardItem *card, QString newPT);
+    void logSetBVS(Player *player, CardItem *card, QString newBVS);
     void logSetAnnotation(Player *player, CardItem *card, QString newAnnotation);
     void logDumpZone(Player *player, CardZone *zone, int numberCards);
     void logRevealCards(Player *player,
@@ -209,17 +209,20 @@ private slots:
     void actAttach();
     void actUnattach();
     void actDrawArrow();
-    void actIncPT(int deltaP, int deltaT);
-    void actResetPT();
-    void actSetPT();
-    void actIncP();
-    void actDecP();
-    void actIncT();
-    void actDecT();
-    void actIncPT();
-    void actDecPT();
-    void actFlowP();
-    void actFlowT();
+    void actIncBVS(int deltaB, int deltaV, int deltaS);
+    void actResetBVS();
+    void actSetBVS();
+    void actIncB();
+    void actDecB();
+    void actIncV();
+    void actDecV();
+    void actIncS();
+    void actDecS();
+    void actIncBVS();
+    void actDecBVS();
+    void actFlowB();
+    void actFlowV();
+    void actFlowS();
     void actSetAnnotation();
     void actPlay();
     void actHide();
@@ -248,8 +251,8 @@ private:
         *aDrawBottomCard, *aDrawBottomCards;
 
     QList<QAction *> aAddCounter, aSetCounter, aRemoveCounter;
-    QAction *aPlay, *aPlayFacedown, *aHide, *aTap, *aDoesntUntap, *aAttach, *aUnattach, *aDrawArrow, *aSetPT, *aResetPT,
-        *aIncP, *aDecP, *aIncT, *aDecT, *aIncPT, *aDecPT, *aFlowP, *aFlowT, *aSetAnnotation, *aFlip, *aPeek, *aClone,
+    QAction *aPlay, *aPlayFacedown, *aHide, *aTap, *aDoesntUntap, *aAttach, *aUnattach, *aDrawArrow, *aSetBVS, *aResetBVS,
+        *aIncB, *aDecB, *aIncV, *aDecV, *aIncS, *aDecS, *aIncBVS, *aDecBVS, *aFlowB, *aFlowV, *aFlowS, *aSetAnnotation, *aFlip, *aPeek, *aClone,
         *aMoveToTopLibrary, *aMoveToBottomLibrary, *aMoveToHand, *aMoveToGraveyard, *aMoveToExile,
         *aMoveToXfromTopOfLibrary;
 
@@ -265,7 +268,7 @@ private:
     int defaultNumberDieRoll = 20;
     static constexpr int minDieRoll = 2;
     static constexpr int maxDieRoll = 1000000;
-    QString lastTokenName, lastTokenColor, lastTokenPT, lastTokenAnnotation;
+    QString lastTokenName, lastTokenColor, lastTokenBVS, lastTokenAnnotation;
     bool lastTokenDestroy;
     int lastTokenTableRow;
     ServerInfo_User *userInfo;
@@ -339,7 +342,7 @@ private:
     void cmdSetTopCard(Command_MoveCard &cmd);
     void cmdSetBottomCard(Command_MoveCard &cmd);
 
-    QVariantList parsePT(const QString &pt);
+    QVariantList parseBVS(const QString &bvs);
 
 public:
     static const int counterAreaWidth = 55;

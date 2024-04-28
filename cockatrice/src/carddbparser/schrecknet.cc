@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QXmlStreamReader>
+#include <QRegularExpression>
 #include <version_string.h>
 
 #define SCHRECKNET_TAGNAME "wmrh_carddatabase"
@@ -144,7 +145,6 @@ void SchrecknetParser::loadCardsFromXml(QXmlStreamReader &xml)
             QList<CardRelation *> relatedCards, reverseRelatedCards;
             auto _sets = CardInfoPerSetMap();
             int tableRow = 0;
-            bool cipt = false;
             bool isToken = false;
             bool isCrypt = false;
             bool upsideDown = false;
@@ -171,7 +171,8 @@ void SchrecknetParser::loadCardsFromXml(QXmlStreamReader &xml)
                 } else if (xmlName == "token") {
                     isToken = static_cast<bool>(xml.readElementText(QXmlStreamReader::IncludeChildElements).toInt());
                 } else if (xmlName == "is_crypt") {
-                    isCrypt = static_cast<bool>(xml.readElementText(QXmlStreamReader::IncludeChildElements).toInt());
+                    isCrypt = QVariant(xml.readElementText(QXmlStreamReader::IncludeChildElements)).toBool();
+                    //isCrypt = static_cast<bool>(xml.readElementText(QXmlStreamReader::IncludeChildElements).toInt());
                     // generic properties
                 } else if (xmlName == "group" || xmlName == "capacity") {
                     auto xmlValue = xml.readElementText(QXmlStreamReader::IncludeChildElements);
@@ -300,10 +301,65 @@ void SchrecknetParser::loadCardsFromXml(QXmlStreamReader &xml)
                 }
             }
 
-            cipt = false;
             /* Todo pass isCrypt*/
+            int bleed = 0;
+            int votes = 0;
+            int strength = 0;
+            if (isCrypt) {
+                static const QRegularExpression cryptBleed("\\+(?P<bleed>\\d+) bleed\\.");
+                static const QRegularExpression independedVotes("(?P<votes>\\d+) votes \\(titled\\)");
+                static const QRegularExpression cryptStrength("\\+(?P<strength>\\d+) strength\\.");
+
+                QRegularExpressionMatch match;
+                match = cryptBleed.match(text);
+                if (match.hasMatch()) {
+                    bleed = match.captured("bleed").toInt();
+                }
+
+                match = independedVotes.match(text);
+                if (match.hasMatch()) {
+                    votes = match.captured("votes").toInt();
+                } else {
+                    if (text.contains("Primogen") || text.contains("Bishop")) {
+                        votes = 1;
+                    }
+                    if (text.contains("Prince") || text.contains("Archbishop") || text.contains("Baron") ||
+                        text.contains("Magaji")) {
+                        votes = 2;
+                    }
+                    if (text.contains("Justicar") || text.contains("Cardinal")) {
+                        votes = 3;
+                    }
+                    if (text.contains("Inner Circle") || text.contains("Regent")) {
+                        votes = 4;
+                    }
+                }
+
+                match = cryptStrength.match(text);
+                if (match.hasMatch()) {
+                    strength = match.captured("strength").toInt();
+                }
+
+                bleed += 1;
+                strength += 1;
+            } else {
+                static const QRegularExpression bvsAlly("with (?P<life>\\d+) life\. (?P<strength>\\d+) strength, (?P<bleed>\\d+) bleed\.");
+                auto match = bvsAlly.match(text);
+                if (match.hasMatch()) {
+                    auto capacity = match.captured("life").toInt();
+                    strength = match.captured("strength").toInt();
+                    bleed = match.captured("bleed").toInt();
+                    properties.insert("capacity", capacity);
+                }
+            }
+
+            properties.insert("bleed", bleed);
+            properties.insert("votes", votes);
+            properties.insert("strength", strength);
+
+
             CardInfoPtr newCard = CardInfo::newInstance(name, text, isToken, properties, relatedCards,
-                                                        reverseRelatedCards, _sets, cipt, tableRow, upsideDown);
+                                                        reverseRelatedCards, _sets, isCrypt, tableRow, upsideDown);
             emit addCard(newCard);
         }
     }
@@ -328,115 +384,116 @@ static QXmlStreamWriter &operator<<(QXmlStreamWriter &xml, const CardSetPtr &set
 
 static QXmlStreamWriter &operator<<(QXmlStreamWriter &xml, const CardInfoPtr &info)
 {
-    if (info.isNull()) {
-        qDebug() << "operator<< info is nullptr";
-        return xml;
-    }
+    qDebug() << "Not Implemented.";
+    /// if (info.isNull()) {
+    ///     qDebug() << "operator<< info is nullptr";
+    ///     return xml;
+    /// }
 
-    QString tmpString;
+    /// QString tmpString;
 
-    xml.writeStartElement("card");
+    /// xml.writeStartElement("card");
 
-    // variable - assigned properties
-    xml.writeTextElement("name", info->getName());
-    xml.writeTextElement("text", info->getText());
-    if (info->getIsToken()) {
-        xml.writeTextElement("token", "1");
-    }
+    /// // variable - assigned properties
+    /// xml.writeTextElement("name", info->getName());
+    /// xml.writeTextElement("text", info->getText());
+    /// if (info->getIsToken()) {
+    ///     xml.writeTextElement("token", "1");
+    /// }
 
-    // generic properties
-    xml.writeStartElement("prop");
-    for (QString propName : info->getProperties()) {
-        //properties.value(propertyName)
+    /// // generic properties
+    /// xml.writeStartElement("prop");
+    /// for (QString propName : info->getProperties()) {
+    ///     //properties.value(propertyName)
 
-        if (info->isPropertyAList(propName)) {
-            QStringList values = info->getPropertyList(propName);
-            xml.writeStartElement(propName);
-            QString slicedName = propName.sliced(0, propName.length() - 1);
-            for (QString propValue : values) {
-                xml.writeTextElement(slicedName, propValue);
-            }
+    ///     if (info->isPropertyAList(propName)) {
+    ///         QStringList values = info->getPropertyList(propName);
+    ///         xml.writeStartElement(propName);
+    ///         QString slicedName = propName.sliced(0, propName.length() - 1);
+    ///         for (QString propValue : values) {
+    ///             xml.writeTextElement(slicedName, propValue);
+    ///         }
 
-            xml.writeEndElement();
-        } else {
-            xml.writeTextElement(propName, info->getProperty(propName));
-        }
-    }
-    xml.writeEndElement();
+    ///         xml.writeEndElement();
+    ///     } else {
+    ///         xml.writeTextElement(propName, info->getProperty(propName));
+    ///     }
+    /// }
+    /// xml.writeEndElement();
 
-    // sets
-    for (CardInfoPerSet set : info->getSets()) {
-        xml.writeStartElement("set");
-        for (QString propName : set.getProperties()) {
-            xml.writeAttribute(propName, set.getProperty(propName));
-        }
+    /// // sets
+    /// for (CardInfoPerSet set : info->getSets()) {
+    ///     xml.writeStartElement("set");
+    ///     for (QString propName : set.getProperties()) {
+    ///         xml.writeAttribute(propName, set.getProperty(propName));
+    ///     }
 
-        xml.writeCharacters(set.getPtr()->getShortName());
-        xml.writeEndElement();
-    }
+    ///     xml.writeCharacters(set.getPtr()->getShortName());
+    ///     xml.writeEndElement();
+    /// }
 
-    // related cards
-    const QList<CardRelation *> related = info->getRelatedCards();
-    for (auto i : related) {
-        xml.writeStartElement("related");
-        if (i->getDoesAttach()) {
-            xml.writeAttribute("attach", i->getAttachTypeAsString());
-        }
-        if (i->getIsCreateAllExclusion()) {
-            xml.writeAttribute("exclude", "exclude");
-        }
-        if (i->getIsPersistent()) {
-            xml.writeAttribute("persistent", "persistent");
-        }
-        if (i->getIsVariable()) {
-            if (1 == i->getDefaultCount()) {
-                xml.writeAttribute("count", "x");
-            } else {
-                xml.writeAttribute("count", "x=" + QString::number(i->getDefaultCount()));
-            }
-        } else if (1 != i->getDefaultCount()) {
-            xml.writeAttribute("count", QString::number(i->getDefaultCount()));
-        }
-        xml.writeCharacters(i->getName());
-        xml.writeEndElement();
-    }
-    const QList<CardRelation *> reverseRelated = info->getReverseRelatedCards();
-    for (auto i : reverseRelated) {
-        xml.writeStartElement("reverse-related");
-        if (i->getDoesAttach()) {
-            xml.writeAttribute("attach", i->getAttachTypeAsString());
-        }
+    /// // related cards
+    /// const QList<CardRelation *> related = info->getRelatedCards();
+    /// for (auto i : related) {
+    ///     xml.writeStartElement("related");
+    ///     if (i->getDoesAttach()) {
+    ///         xml.writeAttribute("attach", i->getAttachTypeAsString());
+    ///     }
+    ///     if (i->getIsCreateAllExclusion()) {
+    ///         xml.writeAttribute("exclude", "exclude");
+    ///     }
+    ///     if (i->getIsPersistent()) {
+    ///         xml.writeAttribute("persistent", "persistent");
+    ///     }
+    ///     if (i->getIsVariable()) {
+    ///         if (1 == i->getDefaultCount()) {
+    ///             xml.writeAttribute("count", "x");
+    ///         } else {
+    ///             xml.writeAttribute("count", "x=" + QString::number(i->getDefaultCount()));
+    ///         }
+    ///     } else if (1 != i->getDefaultCount()) {
+    ///         xml.writeAttribute("count", QString::number(i->getDefaultCount()));
+    ///     }
+    ///     xml.writeCharacters(i->getName());
+    ///     xml.writeEndElement();
+    /// }
+    /// const QList<CardRelation *> reverseRelated = info->getReverseRelatedCards();
+    /// for (auto i : reverseRelated) {
+    ///     xml.writeStartElement("reverse-related");
+    ///     if (i->getDoesAttach()) {
+    ///         xml.writeAttribute("attach", i->getAttachTypeAsString());
+    ///     }
 
-        if (i->getIsCreateAllExclusion()) {
-            xml.writeAttribute("exclude", "exclude");
-        }
+    ///     if (i->getIsCreateAllExclusion()) {
+    ///         xml.writeAttribute("exclude", "exclude");
+    ///     }
 
-        if (i->getIsPersistent()) {
-            xml.writeAttribute("persistent", "persistent");
-        }
-        if (i->getIsVariable()) {
-            if (1 == i->getDefaultCount()) {
-                xml.writeAttribute("count", "x");
-            } else {
-                xml.writeAttribute("count", "x=" + QString::number(i->getDefaultCount()));
-            }
-        } else if (1 != i->getDefaultCount()) {
-            xml.writeAttribute("count", QString::number(i->getDefaultCount()));
-        }
-        xml.writeCharacters(i->getName());
-        xml.writeEndElement();
-    }
+    ///     if (i->getIsPersistent()) {
+    ///         xml.writeAttribute("persistent", "persistent");
+    ///     }
+    ///     if (i->getIsVariable()) {
+    ///         if (1 == i->getDefaultCount()) {
+    ///             xml.writeAttribute("count", "x");
+    ///         } else {
+    ///             xml.writeAttribute("count", "x=" + QString::number(i->getDefaultCount()));
+    ///         }
+    ///     } else if (1 != i->getDefaultCount()) {
+    ///         xml.writeAttribute("count", QString::number(i->getDefaultCount()));
+    ///     }
+    ///     xml.writeCharacters(i->getName());
+    ///     xml.writeEndElement();
+    /// }
 
-    // positioning
-    xml.writeTextElement("tablerow", QString::number(info->getTableRow()));
-    if (info->getCipt()) {
-        xml.writeTextElement("cipt", "1");
-    }
-    if (info->getUpsideDownArt()) {
-        xml.writeTextElement("upsidedown", "1");
-    }
+    /// // positioning
+    /// xml.writeTextElement("tablerow", QString::number(info->getTableRow()));
+    /// if (info->getIsCrypt()) {
+    ///     xml.writeTextElement("cipt", "1");
+    /// }
+    /// if (info->getUpsideDownArt()) {
+    ///     xml.writeTextElement("upsidedown", "1");
+    /// }
 
-    xml.writeEndElement(); // card
+    /// xml.writeEndElement(); // card
 
     return xml;
 }

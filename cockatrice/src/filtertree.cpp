@@ -277,15 +277,15 @@ bool FilterItem::acceptLoyalty(const CardInfoPtr info) const
 
 bool FilterItem::acceptPowerToughness(const CardInfoPtr info, CardFilter::Attr attr) const
 {
-    int slash = info->getPowTough().indexOf("/");
+    int slash = info->getBleedVoteStrength().indexOf("/");
     if (slash == -1) {
         return false;
     }
     QString valueString;
     if (attr == CardFilter::AttrPow) {
-        valueString = info->getPowTough().mid(0, slash);
+        valueString = info->getBleedVoteStrength().mid(0, slash);
     } else {
-        valueString = info->getPowTough().mid(slash + 1);
+        valueString = info->getBleedVoteStrength().mid(slash + 1);
     }
     if (term == valueString) {
         return true;

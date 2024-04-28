@@ -391,7 +391,7 @@ static Event_CreateToken makeCreateTokenEvent(Server_CardZone *zone, Server_Card
     event.set_card_id(card->getId());
     event.set_card_name(card->getName().toStdString());
     event.set_color(card->getColor().toStdString());
-    event.set_pt(card->getPT().toStdString());
+    event.set_bvs(card->getBVS().toStdString());
     event.set_annotation(card->getAnnotation().toStdString());
     event.set_destroy_on_zone_change(card->getDestroyOnZoneChange());
     event.set_x(xCoord);
@@ -632,10 +632,10 @@ Response::ResponseCode Server_Player::moveCard(GameEventStorage &ges,
                 setCardAttrHelper(ges, targetzone->getPlayer()->getPlayerId(), targetzone->getName(), card->getId(),
                                   AttrTapped, "1");
             }
-            QString ptString = QString::fromStdString(thisCardProperties->pt());
-            if (!ptString.isEmpty()) {
+            QString bvsString = QString::fromStdString(thisCardProperties->pt());
+            if (!bvsString.isEmpty()) {
                 setCardAttrHelper(ges, targetzone->getPlayer()->getPlayerId(), targetzone->getName(), card->getId(),
-                                  AttrPT, ptString);
+                                  AttrBVS, bvsString);
             }
 
             if (originalPosition == 0) {
@@ -1234,9 +1234,9 @@ Server_Player::cmdFlipCard(const Command_FlipCard &cmd, ResponseContainer & /*rc
     event.set_face_down(faceDown);
     ges.enqueueGameEvent(event, playerId);
 
-    QString ptString = nameFromStdString(cmd.pt());
-    if (!ptString.isEmpty() && !faceDown) {
-        setCardAttrHelper(ges, playerId, zone->getName(), card->getId(), AttrPT, ptString);
+    QString bvsString = nameFromStdString(cmd.pt());
+    if (!bvsString.isEmpty() && !faceDown) {
+        setCardAttrHelper(ges, playerId, zone->getName(), card->getId(), AttrBVS, bvsString);
     }
 
     return Response::RespOk;
@@ -1418,7 +1418,7 @@ Server_Player::cmdCreateToken(const Command_CreateToken &cmd, ResponseContainer 
 
     auto *card = new Server_Card(cardName, newCardId(), xCoord, yCoord);
     card->moveToThread(thread());
-    card->setPT(nameFromStdString(cmd.pt()));
+    card->setBVS(nameFromStdString(cmd.pt()));
     card->setColor(nameFromStdString(cmd.color()));
     card->setAnnotation(nameFromStdString(cmd.annotation()));
     card->setDestroyOnZoneChange(cmd.destroy_on_zone_change());
@@ -1959,7 +1959,7 @@ Server_Player::cmdDumpZone(const Command_DumpZone &cmd, ResponseContainer &rc, G
             cardInfo->set_tapped(card->getTapped());
             cardInfo->set_attacking(card->getAttacking());
             cardInfo->set_color(card->getColor().toStdString());
-            cardInfo->set_pt(card->getPT().toStdString());
+            cardInfo->set_bvs(card->getBVS().toStdString());
             cardInfo->set_annotation(card->getAnnotation().toStdString());
             cardInfo->set_destroy_on_zone_change(card->getDestroyOnZoneChange());
             cardInfo->set_doesnt_untap(card->getDoesntUntap());
@@ -2072,7 +2072,7 @@ Server_Player::cmdRevealCards(const Command_RevealCards &cmd, ResponseContainer 
         cardInfo->set_tapped(card->getTapped());
         cardInfo->set_attacking(card->getAttacking());
         cardInfo->set_color(card->getColor().toStdString());
-        cardInfo->set_pt(card->getPT().toStdString());
+        cardInfo->set_bvs(card->getBVS().toStdString());
         cardInfo->set_annotation(card->getAnnotation().toStdString());
         cardInfo->set_destroy_on_zone_change(card->getDestroyOnZoneChange());
         cardInfo->set_doesnt_untap(card->getDoesntUntap());

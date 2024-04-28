@@ -30,7 +30,7 @@ CardItem::CardItem(Player *_owner,
     owner->addCard(this);
 
     cardMenu = new QMenu;
-    ptMenu = new QMenu;
+    bvsMenu = new QMenu;
     moveMenu = new QMenu;
 
     retranslateUi();
@@ -44,7 +44,7 @@ CardItem::~CardItem()
         static_cast<GameScene *>(scene())->unregisterAnimationItem(this);
 
     delete cardMenu;
-    delete ptMenu;
+    delete bvsMenu;
     delete moveMenu;
 
     deleteDragItem();
@@ -85,7 +85,7 @@ void CardItem::setZone(CardZone *_zone)
 void CardItem::retranslateUi()
 {
     moveMenu->setTitle(tr("&Move to"));
-    ptMenu->setTitle(tr("&Power / toughness"));
+    bvsMenu->setTitle(tr("&Blood / Votes / Strength"));
 }
 
 void CardItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -107,11 +107,11 @@ void CardItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     QSizeF translatedSize = getTranslatedSize(painter);
     qreal scaleFactor = translatedSize.width() / boundingRect().width();
 
-    if (!pt.isEmpty()) {
+    if (!bvs.isEmpty()) {
         painter->save();
         transformPainter(painter, translatedSize, tapAngle);
 
-        if (!getFaceDown() && info && pt == info->getPowTough()) {
+        if (!getFaceDown() && info && bvs == info->getBleedVoteStrength()) {
             painter->setPen(Qt::white);
         } else {
             painter->setPen(QColor(255, 150, 0)); // dark orange
@@ -122,7 +122,7 @@ void CardItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
         painter->drawText(QRectF(4 * scaleFactor, 4 * scaleFactor, translatedSize.width() - 10 * scaleFactor,
                                  translatedSize.height() - 8 * scaleFactor),
-                          Qt::AlignRight | Qt::AlignBottom, pt);
+                          Qt::AlignRight | Qt::AlignBottom, bvs);
         painter->restore();
     }
 
@@ -188,9 +188,9 @@ void CardItem::setDoesntUntap(bool _doesntUntap)
     update();
 }
 
-void CardItem::setPT(const QString &_pt)
+void CardItem::setBleedVotesStrength(const QString &_bvs)
 {
-    pt = _pt;
+    bvs = _bvs;
     update();
 }
 
@@ -222,7 +222,7 @@ void CardItem::resetState()
     attacking = false;
     facedown = false;
     counters.clear();
-    pt.clear();
+    bvs.clear();
     annotation.clear();
     attachedTo = 0;
     attachedCards.clear();
@@ -246,7 +246,7 @@ void CardItem::processCardInfo(const ServerInfo_Card &_info)
     setName(QString::fromStdString(_info.name()));
     setAttacking(_info.attacking());
     setFaceDown(_info.face_down());
-    setPT(QString::fromStdString(_info.pt()));
+    setBleedVotesStrength(QString::fromStdString(_info.bvs()));
     setAnnotation(QString::fromStdString(_info.annotation()));
     setColor(QString::fromStdString(_info.color()));
     setTapped(_info.tapped());
@@ -383,7 +383,7 @@ void CardItem::playCard(bool faceDown)
     if (tz)
         tz->toggleTapped();
     else
-        zone->getPlayer()->playCard(this, faceDown, info ? info->getCipt() : false);
+        zone->getPlayer()->playCard(this, faceDown, false);
 }
 
 void CardItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)

@@ -43,17 +43,22 @@ QVariant CardDatabaseModel::data(const QModelIndex &index, int role) const
     switch (index.column()) {
         case NameColumn:
             return card->getName();
-        case SetListColumn:
-            return card->getSetsNames();
-        case ManaCostColumn:
-            return role == SortRole ? QString("%1%2").arg(card->getCmc(), 4, QChar('0')).arg(card->getManaCost())
-                                    : card->getManaCost();
         case CardTypeColumn:
             return card->getCardType();
-        case PTColumn:
-            return card->getPowTough();
-        case ColorColumn:
-            return card->getColors();
+        case BleedColumn:
+            return card->getBleed();
+        case VotesColumn:
+            return card->getVotes();
+        case ClanColumn:
+            return card->getClans();
+        case PoolCostColumn:
+            return card->getPoolCost();
+        case BloodCostColumn:
+            return card->getBloodCost();
+        case GroupColumn:
+            return card->getGroup();
+        case SetListColumn:
+            return card->getSetsNames();
         default:
             return QVariant();
     }
@@ -68,16 +73,22 @@ QVariant CardDatabaseModel::headerData(int section, Qt::Orientation orientation,
     switch (section) {
         case NameColumn:
             return QString(tr("Name"));
-        case SetListColumn:
-            return QString(tr("Sets"));
-        case ManaCostColumn:
-            return QString(tr("Mana cost"));
         case CardTypeColumn:
             return QString(tr("Card type"));
-        case PTColumn:
-            return QString(tr("P/T"));
-        case ColorColumn:
-            return QString(tr("Color(s)"));
+        case BleedColumn:
+            return QString(tr("Bleed"));
+        case VotesColumn:
+            return QString(tr("Votes"));
+        case ClanColumn:
+            return QString(tr("Clans"));
+        case PoolCostColumn:
+            return QString(tr("Pool"));
+        case BloodCostColumn:
+            return QString(tr("Blood"));
+        case GroupColumn:
+            return QString(tr("Group"));
+        case SetListColumn:
+            return QString(tr("Sets"));
         default:
             return QVariant();
     }
@@ -197,21 +208,18 @@ bool CardDatabaseDisplayModel::lessThan(const QModelIndex &left, const QModelInd
         // same checks for the right string
         if (isRightType && (!isLeftType || rightString.size() == cardName.size()))
             return false;
-    } else if (right.column() == CardDatabaseModel::PTColumn && left.column() == CardDatabaseModel::PTColumn) {
-        QStringList leftList = leftString.split("/");
-        QStringList rightList = rightString.split("/");
+    } else if (right.column() == CardDatabaseModel::BloodCostColumn) {
+        // if (leftList.size() == 2 && rightList.size() == 2) {
 
-        if (leftList.size() == 2 && rightList.size() == 2) {
-
-            // cool, have both P/T in list now
-            int lessThanNum = lessThanNumerically(leftList.at(0), rightList.at(0));
-            if (lessThanNum != 0) {
-                return lessThanNum < 0;
-            } else {
-                // power equal, check toughness
-                return lessThanNumerically(leftList.at(1), rightList.at(1)) < 0;
-            }
-        }
+        //     // cool, have both P/T in list now
+        //     int lessThanNum = lessThanNumerically(leftList.at(0), rightList.at(0));
+        //     if (lessThanNum != 0) {
+        //         return lessThanNum < 0;
+        //     } else {
+        //         // power equal, check toughness
+        //         return lessThanNumerically(leftList.at(1), rightList.at(1)) < 0;
+        //     }
+        // }
     }
     return QString::localeAwareCompare(leftString, rightString) < 0;
 }

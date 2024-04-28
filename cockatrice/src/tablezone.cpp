@@ -146,7 +146,7 @@ void TableZone::handleDropEventByGrid(const QList<CardDragItem *> &dragItems,
         if (startZone->getName() != name && !item->getFaceDown()) {
             const auto &info = item->getItem()->getInfo();
             if (info) {
-                ctm->set_pt(info->getPowTough().toStdString());
+                ctm->set_bvs(info->getBleedVoteStrength().toStdString());
             }
         }
     }
