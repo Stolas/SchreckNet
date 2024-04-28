@@ -997,7 +997,7 @@ void TabDeckEditor::actSwapCard()
 
     const QString zoneName = gparent.sibling(gparent.row(), 1).data(Qt::EditRole).toString();
     actDecrement();
-    const QString otherZoneName = zoneName == DECK_ZONE_MAIN ? DECK_ZONE_SIDE : DECK_ZONE_MAIN;
+    const QString otherZoneName = zoneName == DECK_ZONE_MAIN ? DECK_ZONE_CRYPT : DECK_ZONE_MAIN;
 
     // Third argument (true) says create the card no mater what, even if not in DB
     QModelIndex newCardIndex = deckModel->addCard(cardName, otherZoneName, true);
@@ -1018,7 +1018,7 @@ void TabDeckEditor::actAddCard()
 
 void TabDeckEditor::actAddCardToSideboard()
 {
-    addCardHelper(DECK_ZONE_SIDE);
+    addCardHelper(DECK_ZONE_CRYPT);
     setSaveStatus(true);
 }
 
@@ -1071,7 +1071,7 @@ void TabDeckEditor::actDecrementCard()
 
 void TabDeckEditor::actDecrementCardFromSideboard()
 {
-    decrementCardHelper(DECK_ZONE_SIDE);
+    decrementCardHelper(DECK_ZONE_CRYPT);
 }
 
 void TabDeckEditor::copyDatabaseCellContents()

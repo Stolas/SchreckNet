@@ -199,7 +199,7 @@ void Server_Player::setupZones()
         Server_CardZone *z;
         if (currentZone->getName() == DECK_ZONE_MAIN) {
             z = deckZone;
-        } else if (currentZone->getName() == DECK_ZONE_SIDE) {
+        } else if (currentZone->getName() == DECK_ZONE_CRYPT) {
             z = sbZone;
         } else {
             continue;
@@ -224,14 +224,14 @@ void Server_Player::setupZones()
         Server_CardZone *start, *target;
         if (startZone == DECK_ZONE_MAIN) {
             start = deckZone;
-        } else if (startZone == DECK_ZONE_SIDE) {
+        } else if (startZone == DECK_ZONE_CRYPT) {
             start = sbZone;
         } else {
             continue;
         }
         if (targetZone == DECK_ZONE_MAIN) {
             target = deckZone;
-        } else if (targetZone == DECK_ZONE_SIDE) {
+        } else if (targetZone == DECK_ZONE_CRYPT) {
             target = sbZone;
         } else {
             continue;

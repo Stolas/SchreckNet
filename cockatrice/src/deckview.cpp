@@ -141,8 +141,8 @@ void DeckView::mouseDoubleClickEvent(QMouseEvent *event)
             m.set_start_zone(zone->getName().toStdString());
 
             if (zone->getName() == DECK_ZONE_MAIN)
-                m.set_target_zone(DECK_ZONE_SIDE);
-            else if (zone->getName() == DECK_ZONE_SIDE)
+                m.set_target_zone(DECK_ZONE_CRYPT);
+            else if (zone->getName() == DECK_ZONE_CRYPT)
                 m.set_target_zone(DECK_ZONE_MAIN);
             else // Trying to move from another zone
                 m.set_target_zone(zone->getName().toStdString());

@@ -13,7 +13,7 @@ public:
     enum FileFormat
     {
         PlainTextFormat,
-        CockatriceFormat
+        SchreckNetFormat
     };
     static const QStringList fileNameFilters;
 

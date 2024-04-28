@@ -109,8 +109,8 @@ QString InnerDecklistNode::visibleNameFromName(const QString &_name)
 {
     if (_name == DECK_ZONE_MAIN) {
         return QObject::tr("Maindeck");
-    } else if (_name == DECK_ZONE_SIDE) {
-        return QObject::tr("Sideboard");
+    } else if (_name == DECK_ZONE_CRYPT) {
+        return QObject::tr("Crypt");
     } else if (_name == DECK_ZONE_TOKENS) {
         return QObject::tr("Tokens");
     } else {
@@ -403,14 +403,14 @@ bool DeckList::readElement(QXmlStreamReader *xml)
             else
                 delete newSideboardPlan;
         }
-    } else if (xml->isEndElement() && (childName == "cockatrice_deck"))
+    } else if (xml->isEndElement() && (childName == "schrecknet_deck"))
         return false;
     return true;
 }
 
 void DeckList::write(QXmlStreamWriter *xml)
 {
-    xml->writeStartElement("cockatrice_deck");
+    xml->writeStartElement("schrecknet_deck");
     xml->writeAttribute("version", "1");
     xml->writeTextElement("deckname", name);
     xml->writeTextElement("comments", comments);
@@ -435,7 +435,7 @@ bool DeckList::loadFromXml(QXmlStreamReader *xml)
     while (!xml->atEnd()) {
         xml->readNext();
         if (xml->isStartElement()) {
-            if (xml->name().toString() != "cockatrice_deck")
+            if (xml->name().toString() != "schrecknet_deck")
                 return false;
             while (!xml->atEnd()) {
                 xml->readNext();
@@ -491,8 +491,8 @@ bool DeckList::loadFromStream_Plain(QTextStream &in)
     const QRegularExpression reCardLine(R"(^\s*[\w\[\(\{].*$)", QRegularExpression::UseUnicodePropertiesOption);
     const QRegularExpression reEmpty("^\\s*$");
     const QRegularExpression reComment(R"([\w\[\(\{].*$)", QRegularExpression::UseUnicodePropertiesOption);
-    const QRegularExpression reSBMark("^\\s*sb:\\s*(.+)", QRegularExpression::CaseInsensitiveOption);
-    const QRegularExpression reSBComment("^sideboard\\b.*$", QRegularExpression::CaseInsensitiveOption);
+    const QRegularExpression reCryptMark("^\\s*crypt:\\s*(.+)", QRegularExpression::CaseInsensitiveOption);
+    const QRegularExpression reCryptComment("^crypt\\b.*$", QRegularExpression::CaseInsensitiveOption);
     const QRegularExpression reDeckComment("^((main)?deck(list)?|mainboard)\\b",
                                            QRegularExpression::CaseInsensitiveOption);
 
@@ -529,8 +529,8 @@ bool DeckList::loadFromStream_Plain(QTextStream &in)
 
     // find sideboard position, if marks are used this won't be needed
     int sBStart = -1;
-    if (inputs.indexOf(reSBMark, deckStart) == -1) {
-        sBStart = inputs.indexOf(reSBComment, deckStart);
+    if (inputs.indexOf(reCryptMark, deckStart) == -1) {
+        sBStart = inputs.indexOf(reCryptComment, deckStart);
         if (sBStart == -1) {
             sBStart = inputs.indexOf(reEmpty, deckStart + 1);
             if (sBStart == -1) {
@@ -586,7 +586,7 @@ bool DeckList::loadFromStream_Plain(QTextStream &in)
         // check if card should be sideboard
         bool sideboard = false;
         if (sBStart < 0) {
-            match = reSBMark.match(cardName);
+            match = reCryptMark.match(cardName);
             if (match.hasMatch()) {
                 sideboard = true;
                 cardName = match.captured(1);
@@ -620,7 +620,7 @@ bool DeckList::loadFromStream_Plain(QTextStream &in)
         cardName = getCompleteCardName(cardName);
 
         // get zone name based on if it's in sideboard
-        QString zoneName = getCardZoneFromName(cardName, sideboard ? DECK_ZONE_SIDE : DECK_ZONE_MAIN);
+        QString zoneName = getCardZoneFromName(cardName, sideboard ? DECK_ZONE_CRYPT : DECK_ZONE_MAIN);
 
         // make new entry in decklist
         new DecklistCardNode(cardName, amount, getZoneObjFromName(zoneName));
@@ -662,8 +662,8 @@ struct WriteToStream
 
     void operator()(const InnerDecklistNode *node, const DecklistCardNode *card)
     {
-        if (prefixSideboardCards && node->getName() == DECK_ZONE_SIDE) {
-            stream << "SB: ";
+        if (prefixSideboardCards && node->getName() == DECK_ZONE_CRYPT) {
+            stream << "Crypt: ";
         }
         if (!slashTappedOutSplitCards) {
             stream << QString("%1 %2\n").arg(card->getNumber()).arg(card->getName());
@@ -728,7 +728,7 @@ int DeckList::getSideboardSize() const
     int size = 0;
     for (int i = 0; i < root->size(); ++i) {
         auto *node = dynamic_cast<InnerDecklistNode *>(root->at(i));
-        if (node->getName() != DECK_ZONE_SIDE) {
+        if (node->getName() != DECK_ZONE_CRYPT) {
             continue;
         }
 
@@ -801,7 +801,7 @@ void DeckList::updateDeckHash()
     QStringList cardList;
     QSet<QString> hashZones, optionalZones;
 
-    hashZones << DECK_ZONE_MAIN << DECK_ZONE_SIDE; // Zones in deck to be included in hashing process
+    hashZones << DECK_ZONE_MAIN << DECK_ZONE_CRYPT; // Zones in deck to be included in hashing process
     optionalZones << DECK_ZONE_TOKENS;             // Optional zones in deck not included in hashing process
 
     for (int i = 0; i < root->size(); i++) {
@@ -811,7 +811,7 @@ void DeckList::updateDeckHash()
             {
                 auto *card = dynamic_cast<DecklistCardNode *>(node->at(j));
                 for (int k = 0; k < card->getNumber(); ++k) {
-                    cardList.append((node->getName() == DECK_ZONE_SIDE ? "SB:" : "") + card->getName().toLower());
+                    cardList.append((node->getName() == DECK_ZONE_CRYPT ? "Crypt:" : "") + card->getName().toLower());
                 }
             }
         }

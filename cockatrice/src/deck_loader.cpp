@@ -10,20 +10,20 @@
 #include <QStringList>
 
 const QStringList DeckLoader::fileNameFilters = QStringList()
-                                                << QObject::tr("Common deck formats (*.cod *.dec *.dek *.txt *.mwDeck)")
+                                                << QObject::tr("SchreckNet deck format (*.snDeck)")
                                                 << QObject::tr("All files (*.*)");
 
-DeckLoader::DeckLoader() : DeckList(), lastFileName(QString()), lastFileFormat(CockatriceFormat), lastRemoteDeckId(-1)
+DeckLoader::DeckLoader() : DeckList(), lastFileName(QString()), lastFileFormat(SchreckNetFormat), lastRemoteDeckId(-1)
 {
 }
 
 DeckLoader::DeckLoader(const QString &nativeString)
-    : DeckList(nativeString), lastFileName(QString()), lastFileFormat(CockatriceFormat), lastRemoteDeckId(-1)
+    : DeckList(nativeString), lastFileName(QString()), lastFileFormat(SchreckNetFormat), lastRemoteDeckId(-1)
 {
 }
 
 DeckLoader::DeckLoader(const DeckList &other)
-    : DeckList(other), lastFileName(QString()), lastFileFormat(CockatriceFormat), lastRemoteDeckId(-1)
+    : DeckList(other), lastFileName(QString()), lastFileFormat(SchreckNetFormat), lastRemoteDeckId(-1)
 {
 }
 
@@ -45,7 +45,7 @@ bool DeckLoader::loadFromFile(const QString &fileName, FileFormat fmt)
         case PlainTextFormat:
             result = loadFromFile_Plain(&file);
             break;
-        case CockatriceFormat: {
+        case SchreckNetFormat: {
             result = loadFromFile_Native(&file);
             qDebug() << "Loaded from" << fileName << "-" << result;
             if (!result) {
@@ -77,7 +77,7 @@ bool DeckLoader::loadFromRemote(const QString &nativeString, int remoteDeckId)
     bool result = loadFromString_Native(nativeString);
     if (result) {
         lastFileName = QString();
-        lastFileFormat = CockatriceFormat;
+        lastFileFormat = SchreckNetFormat;
         lastRemoteDeckId = remoteDeckId;
 
         emit deckLoaded();
@@ -97,7 +97,7 @@ bool DeckLoader::saveToFile(const QString &fileName, FileFormat fmt)
         case PlainTextFormat:
             result = saveToFile_Plain(&file);
             break;
-        case CockatriceFormat:
+        case SchreckNetFormat:
             result = saveToFile_Native(&file);
             break;
     }
@@ -116,10 +116,10 @@ struct FormatDeckListForExport
 {
     // Create refrences for the strings that will be passed in.
     QString &mainBoardCards;
-    QString &sideBoardCards;
+    QString &cryptBoardCards;
     // create main operator for struct, allowing the foreachcard to work.
-    FormatDeckListForExport(QString &_mainBoardCards, QString &_sideBoardCards)
-        : mainBoardCards(_mainBoardCards), sideBoardCards(_sideBoardCards){};
+    FormatDeckListForExport(QString &_mainBoardCards, QString &_cryptBoardCards)
+        : mainBoardCards(_mainBoardCards), cryptBoardCards(_cryptBoardCards){};
 
     void operator()(const InnerDecklistNode *node, const DecklistCardNode *card) const
     {
@@ -131,15 +131,15 @@ struct FormatDeckListForExport
         }
 
         // Check if it's a sideboard card.
-        if (node->getName() == DECK_ZONE_SIDE) {
+        if (node->getName() == DECK_ZONE_CRYPT) {
             // Get the number of cards and add the card name
-            sideBoardCards += QString::number(card->getNumber());
+            cryptBoardCards += QString::number(card->getNumber());
             // Add a space between card num and name
-            sideBoardCards += "%20";
+            cryptBoardCards += "%20";
             // Add card name
-            sideBoardCards += card->getName();
+            cryptBoardCards += card->getName();
             // Add a return at the end of the card
-            sideBoardCards += "%0A";
+            cryptBoardCards += "%0A";
         } else // If it's a mainboard card, do the same thing, but for the mainboard card string
         {
             mainBoardCards += QString::number(card->getNumber());
@@ -156,29 +156,29 @@ QString DeckLoader::exportDeckToDecklist()
     // Add the base url
     QString deckString = "https://www.decklist.org/?";
     // Create two strings to pass to function
-    QString mainBoardCards, sideBoardCards;
+    QString mainBoardCards, cryptBoardCards;
     // Set up the struct to call.
-    FormatDeckListForExport formatDeckListForExport(mainBoardCards, sideBoardCards);
+    FormatDeckListForExport formatDeckListForExport(mainBoardCards, cryptBoardCards);
     // call our struct function for each card in the deck
     forEachCard(formatDeckListForExport);
     // Remove the extra return at the end of the last cards
     mainBoardCards.chop(3);
-    sideBoardCards.chop(3);
+    cryptBoardCards.chop(3);
     // if after we've called it for each card, and the strings are empty, we know that
     // there were no non-token cards in the deck, so show an error message.
     if ((QString::compare(mainBoardCards, "", Qt::CaseInsensitive) == 0) &&
-        (QString::compare(sideBoardCards, "", Qt::CaseInsensitive) == 0)) {
+        (QString::compare(cryptBoardCards, "", Qt::CaseInsensitive) == 0)) {
         return "";
     }
     // return a string with the url for decklist export
-    deckString += "deckmain=" + mainBoardCards + "&deckside=" + sideBoardCards;
+    deckString += "deckmain=" + mainBoardCards + "&deckside=" + cryptBoardCards;
     return deckString;
 }
 
 DeckLoader::FileFormat DeckLoader::getFormatFromName(const QString &fileName)
 {
-    if (fileName.endsWith(".cod", Qt::CaseInsensitive)) {
-        return CockatriceFormat;
+    if (fileName.endsWith(".snDeck", Qt::CaseInsensitive)) {
+        return SchreckNetFormat;
     }
     return PlainTextFormat;
 }
@@ -270,8 +270,8 @@ void DeckLoader::saveToStream_DeckZoneCards(QTextStream &out,
     for (int i = cards.size() - 1; i >= 0; --i) {
         DecklistCardNode *card = cards[i];
 
-        if (zoneNode->getName() == DECK_ZONE_SIDE && addComments) {
-            out << "SB: ";
+        if (zoneNode->getName() == DECK_ZONE_CRYPT && addComments) {
+            out << "CRYPT: ";
         }
 
         out << card->getNumber() << " " << card->getName() << "\n";

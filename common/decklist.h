@@ -21,7 +21,7 @@ class QTextStream;
 class InnerDecklistNode;
 
 #define DECK_ZONE_MAIN "main"
-#define DECK_ZONE_SIDE "side"
+#define DECK_ZONE_CRYPT "side"
 #define DECK_ZONE_TOKENS "tokens"
 
 class SideboardPlan

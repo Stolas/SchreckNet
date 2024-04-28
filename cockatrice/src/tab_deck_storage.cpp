@@ -155,7 +155,7 @@ void TabDeckStorage::actOpenLocalDeck()
     QString filePath = localDirModel->filePath(curLeft);
 
     DeckLoader deckLoader;
-    if (!deckLoader.loadFromFile(filePath, DeckLoader::CockatriceFormat))
+    if (!deckLoader.loadFromFile(filePath, DeckLoader::SchreckNetFormat))
         return;
 
     emit openDeckEditor(&deckLoader);
@@ -178,7 +178,7 @@ void TabDeckStorage::actUpload()
 
     QString deckString;
     DeckLoader deck;
-    bool error = !deck.loadFromFile(filePath, DeckLoader::CockatriceFormat);
+    bool error = !deck.loadFromFile(filePath, DeckLoader::SchreckNetFormat);
     if (!error) {
         deckString = deck.writeToString_Native();
         error = deckString.length() > MAX_FILE_LENGTH;
@@ -310,7 +310,7 @@ void TabDeckStorage::downloadFinished(const Response &r,
     QString filePath = extraData.toString();
 
     DeckLoader deck(QString::fromStdString(resp.deck()));
-    deck.saveToFile(filePath, DeckLoader::CockatriceFormat);
+    deck.saveToFile(filePath, DeckLoader::SchreckNetFormat);
 }
 
 void TabDeckStorage::actNewFolder()
