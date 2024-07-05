@@ -164,7 +164,6 @@ void DlgCreateToken::tokenSelectionChanged(const QModelIndex &current, const QMo
         updateSearchFieldWithoutUpdatingFilter(cardInfo->getName());
         const QChar cardColor = cardInfo->getColorChar();
         colorEdit->setCurrentIndex(colorEdit->findData(cardColor, Qt::UserRole, Qt::MatchFixedString));
-        ptEdit->setText(cardInfo->getBleedVoteStrength());
         if (SettingsCache::instance().getAnnotateTokens())
             annotationEdit->setText(cardInfo->getText());
     } else {

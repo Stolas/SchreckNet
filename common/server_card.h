@@ -44,7 +44,6 @@ private:
     bool attacking;
     bool facedown;
     QString color;
-    QString bvsString;
     QString annotation;
     bool destroyOnZoneChange;
     bool doesntUntap;
@@ -106,10 +105,6 @@ public:
     {
         return color;
     }
-    QString getBVS() const
-    {
-        return bvsString;
-    }
     QString getAnnotation() const
     {
         return annotation;
@@ -160,10 +155,6 @@ public:
     void setColor(const QString &_color)
     {
         color = _color;
-    }
-    void setBVS(const QString &_bvs)
-    {
-        bvsString = _bvs;
     }
     void setAnnotation(const QString &_annotation)
     {

@@ -275,26 +275,6 @@ bool FilterItem::acceptLoyalty(const CardInfoPtr info) const
     }
 }
 
-bool FilterItem::acceptPowerToughness(const CardInfoPtr info, CardFilter::Attr attr) const
-{
-    int slash = info->getBleedVoteStrength().indexOf("/");
-    if (slash == -1) {
-        return false;
-    }
-    QString valueString;
-    if (attr == CardFilter::AttrPow) {
-        valueString = info->getBleedVoteStrength().mid(0, slash);
-    } else {
-        valueString = info->getBleedVoteStrength().mid(slash + 1);
-    }
-    if (term == valueString) {
-        return true;
-    }
-    // advanced filtering should only happen after fast string comparison failed
-    bool conversion;
-    int value = valueString.toInt(&conversion);
-    return conversion ? relationCheck(value) : false;
-}
 
 bool FilterItem::acceptRarity(const CardInfoPtr info) const
 {
@@ -399,12 +379,6 @@ bool FilterItem::acceptCardAttr(const CardInfoPtr info, CardFilter::Attr attr) c
             return acceptCmc(info);
         case CardFilter::AttrRarity:
             return acceptRarity(info);
-        case CardFilter::AttrPow:
-        case CardFilter::AttrTough:
-            // intentional fallthrough
-            return acceptPowerToughness(info, attr);
-        case CardFilter::AttrLoyalty:
-            return acceptLoyalty(info);
         case CardFilter::AttrFormat:
             return acceptFormat(info);
         default:

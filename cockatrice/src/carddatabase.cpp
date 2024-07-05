@@ -728,20 +728,6 @@ const QString CardInfo::getManaCost() const
 {
     return getProperty(Mtg::ManaCost);
 }
-const QString CardInfo::getBleedVoteStrength() const
-{
-    return getProperty(Mtg::PowTough);
-}
-
-const QString CardInfo::getBleed() const
-{
-    return getProperty(Vtes::Bleed);
-}
-
-const QString CardInfo::getVotes() const
-{
-    return getProperty(Vtes::Votes);
-}
 
 const QString CardInfo::getClans() const
 {

@@ -122,7 +122,7 @@ signals:
                         Player *targetPlayer,
                         QString targetCard,
                         bool _playerTarget);
-    void logCreateToken(Player *player, QString cardName, QString pt);
+    void logCreateToken(Player *player, QString cardName);
     void logDrawCards(Player *player, int number, bool deckIsEmpty);
     void logDrawCryptCards(Player *player, int number, bool deckIsEmpty);
     void logUndoDraw(Player *player, QString cardName);
@@ -135,7 +135,6 @@ signals:
     void logSetTapped(Player *player, CardItem *card, bool tapped);
     void logSetCounter(Player *player, QString counterName, int value, int oldValue);
     void logSetDoesntUntap(Player *player, CardItem *card, bool doesntUntap);
-    void logSetBVS(Player *player, CardItem *card, QString newBVS);
     void logSetAnnotation(Player *player, CardItem *card, QString newAnnotation);
     void logDumpZone(Player *player, CardZone *zone, int numberCards);
     void logRevealCards(Player *player,
@@ -209,20 +208,6 @@ private slots:
     void actAttach();
     void actUnattach();
     void actDrawArrow();
-    void actIncBVS(int deltaB, int deltaV, int deltaS);
-    void actResetBVS();
-    void actSetBVS();
-    void actIncB();
-    void actDecB();
-    void actIncV();
-    void actDecV();
-    void actIncS();
-    void actDecS();
-    void actIncBVS();
-    void actDecBVS();
-    void actFlowB();
-    void actFlowV();
-    void actFlowS();
     void actSetAnnotation();
     void actPlay();
     void actHide();

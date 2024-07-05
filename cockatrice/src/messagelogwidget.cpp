@@ -249,12 +249,11 @@ void MessageLogWidget::logCreateArrow(Player *player,
     }
 }
 
-void MessageLogWidget::logCreateToken(Player *player, QString cardName, QString pt)
+void MessageLogWidget::logCreateToken(Player *player, QString cardName)
 {
-    appendHtmlServerMessage(tr("%1 creates token: %2%3.")
+    appendHtmlServerMessage(tr("%1 creates token: %2.")
                                 .arg(sanitizeHtml(player->getName()))
-                                .arg(cardLink(std::move(cardName)))
-                                .arg(pt.isEmpty() ? QString() : QString(" (%1)").arg(sanitizeHtml(pt))));
+                                .arg(cardLink(std::move(cardName))));
 }
 
 void MessageLogWidget::logDeckSelect(Player *player, QString deckHash, int sideboardSize)
@@ -660,33 +659,6 @@ void MessageLogWidget::logSetDoesntUntap(Player *player, CardItem *card, bool do
         str = tr("%1 sets %2 to untap normally.");
     }
     appendHtmlServerMessage(str.arg(sanitizeHtml(player->getName())).arg(cardLink(card->getName())));
-}
-
-void MessageLogWidget::logSetPT(Player *player, CardItem *card, QString newBVS)
-{
-    if (currentContext == MessageContext_MoveCard) {
-        return;
-    }
-
-    QString name = card->getName();
-    if (name.isEmpty()) {
-        name = QString("<font class=\"blue\">card #%1</font>").arg(sanitizeHtml(QString::number(card->getId())));
-    } else {
-        name = cardLink(name);
-    }
-    QString playerName = sanitizeHtml(player->getName());
-    if (newBVS.isEmpty()) {
-        appendHtmlServerMessage(tr("%1 removes the PT of %2.").arg(playerName).arg(name));
-    } else {
-        QString oldBVS = card->getBleedVotesStrength();
-        if (oldBVS.isEmpty()) {
-            appendHtmlServerMessage(
-                tr("%1 changes the BVS of %2 from nothing to %4.").arg(playerName).arg(name).arg(newBVS));
-        } else {
-            appendHtmlServerMessage(
-                tr("%1 changes the BVS of %2 from %3 to %4.").arg(playerName).arg(name).arg(oldBVS).arg(newBVS));
-        }
-    }
 }
 
 void MessageLogWidget::logSetSideboardLock(Player *player, bool locked)

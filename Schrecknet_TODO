@@ -1,11 +1,16 @@
 Fix Cmake:
     * "-Zc:__cplusplus -permissive-"
-    * Auto-qtdeploybins
+    * Auto-qtdeploybins (windeployqt.exe)
 
 Fix Importer to use Schrecknets
 Fix Draw Crypt Card
 VTES Specific Game Commands:
     * Influence Crypt Card
 
-Randomize Table Seating on Game Start
+Game Type:
+    * Random Table Seating on Start.
+    * Tournament Sitting at Start. (All dice roll, show four random crypt cards, pick location)
 
+Later:
+    * Add support for Malkav Games.
+    * Add support for 'joining after dropping'.

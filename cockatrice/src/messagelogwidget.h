@@ -53,7 +53,7 @@ public slots:
                         Player *targetPlayer,
                         QString targetCard,
                         bool playerTarget);
-    void logCreateToken(Player *player, QString cardName, QString pt);
+    void logCreateToken(Player *player, QString cardName);
     void logDeckSelect(Player *player, QString deckHash, int sideboardSize);
     void logDestroyCard(Player *player, QString cardName);
     void logDrawCards(Player *player, int number, bool deckIsEmpty);
@@ -87,7 +87,6 @@ public slots:
     void logSetCardCounter(Player *player, QString cardName, int counterId, int value, int oldValue);
     void logSetCounter(Player *player, QString counterName, int value, int oldValue);
     void logSetDoesntUntap(Player *player, CardItem *card, bool doesntUntap);
-    void logSetPT(Player *player, CardItem *card, QString newPT);
     void logSetSideboardLock(Player *player, bool locked);
     void logSetTapped(Player *player, CardItem *card, bool tapped);
     void logShuffle(Player *player, CardZone *zone, int start, int end);

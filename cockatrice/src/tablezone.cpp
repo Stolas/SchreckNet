@@ -139,6 +139,7 @@ void TableZone::handleDropEventByGrid(const QList<CardDragItem *> &dragItems,
     cmd.set_x(gridPoint.x());
     cmd.set_y(gridPoint.y());
 
+    /* Todo; can thsi be removed?*/
     for (const auto &item : dragItems) {
         CardToMove *ctm = cmd.mutable_cards_to_move()->add_card();
         ctm->set_card_id(item->getId());
@@ -146,7 +147,7 @@ void TableZone::handleDropEventByGrid(const QList<CardDragItem *> &dragItems,
         if (startZone->getName() != name && !item->getFaceDown()) {
             const auto &info = item->getItem()->getInfo();
             if (info) {
-                ctm->set_bvs(info->getBleedVoteStrength().toStdString());
+                // ctm->set_bvs(info->getBleedVoteStrength().toStdString());
             }
         }
     }

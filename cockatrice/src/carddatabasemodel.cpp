@@ -45,10 +45,6 @@ QVariant CardDatabaseModel::data(const QModelIndex &index, int role) const
             return card->getName();
         case CardTypeColumn:
             return card->getCardType();
-        case BleedColumn:
-            return card->getBleed();
-        case VotesColumn:
-            return card->getVotes();
         case ClanColumn:
             return card->getClans();
         case PoolCostColumn:
@@ -75,10 +71,6 @@ QVariant CardDatabaseModel::headerData(int section, Qt::Orientation orientation,
             return QString(tr("Name"));
         case CardTypeColumn:
             return QString(tr("Card type"));
-        case BleedColumn:
-            return QString(tr("Bleed"));
-        case VotesColumn:
-            return QString(tr("Votes"));
         case ClanColumn:
             return QString(tr("Clans"));
         case PoolCostColumn:

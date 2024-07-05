@@ -107,25 +107,6 @@ void CardItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     QSizeF translatedSize = getTranslatedSize(painter);
     qreal scaleFactor = translatedSize.width() / boundingRect().width();
 
-    if (!bvs.isEmpty()) {
-        painter->save();
-        transformPainter(painter, translatedSize, tapAngle);
-
-        if (!getFaceDown() && info && bvs == info->getBleedVoteStrength()) {
-            painter->setPen(Qt::white);
-        } else {
-            painter->setPen(QColor(255, 150, 0)); // dark orange
-        }
-
-        painter->setBackground(Qt::black);
-        painter->setBackgroundMode(Qt::OpaqueMode);
-
-        painter->drawText(QRectF(4 * scaleFactor, 4 * scaleFactor, translatedSize.width() - 10 * scaleFactor,
-                                 translatedSize.height() - 8 * scaleFactor),
-                          Qt::AlignRight | Qt::AlignBottom, bvs);
-        painter->restore();
-    }
-
     if (!annotation.isEmpty()) {
         painter->save();
 
@@ -188,11 +169,6 @@ void CardItem::setDoesntUntap(bool _doesntUntap)
     update();
 }
 
-void CardItem::setBleedVotesStrength(const QString &_bvs)
-{
-    bvs = _bvs;
-    update();
-}
 
 void CardItem::setAttachedTo(CardItem *_attachedTo)
 {
@@ -246,7 +222,6 @@ void CardItem::processCardInfo(const ServerInfo_Card &_info)
     setName(QString::fromStdString(_info.name()));
     setAttacking(_info.attacking());
     setFaceDown(_info.face_down());
-    setBleedVotesStrength(QString::fromStdString(_info.bvs()));
     setAnnotation(QString::fromStdString(_info.annotation()));
     setColor(QString::fromStdString(_info.color()));
     setTapped(_info.tapped());

@@ -134,12 +134,12 @@ void DlgEditTokens::tokenSelectionChanged(const QModelIndex &current, const QMod
         nameEdit->setText(currentCard->getName());
         const QChar cardColor = currentCard->getColorChar();
         colorEdit->setCurrentIndex(colorEdit->findData(cardColor, Qt::UserRole, Qt::MatchFixedString));
-        ptEdit->setText(currentCard->getBleedVoteStrength());
+        // ptEdit->setText(currentCard->getBleedVoteStrength());
         annotationEdit->setText(currentCard->getText());
     } else {
         nameEdit->setText("");
         colorEdit->setCurrentIndex(colorEdit->findData(QChar(), Qt::UserRole, Qt::MatchFixedString));
-        ptEdit->setText("");
+        // ptEdit->setText("");
         annotationEdit->setText("");
     }
 }

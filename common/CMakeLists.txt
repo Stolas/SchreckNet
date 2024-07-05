@@ -39,5 +39,11 @@ include_directories(${PROTOBUF_INCLUDE_DIR})
 include_directories(${${COCKATRICE_QT_VERSION_NAME}Core_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+if (MSVC)
+    add_compile_options(/Zc:__cplusplus)
+    add_compile_options(-permissive-)
+endif()
+
+
 add_library(cockatrice_common ${common_SOURCES} ${common_MOC_SRCS})
 target_link_libraries(cockatrice_common PUBLIC cockatrice_protocol)

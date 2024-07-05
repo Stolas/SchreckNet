@@ -205,7 +205,6 @@ public:
     bool acceptSet(CardInfoPtr info) const;
     bool acceptManaCost(CardInfoPtr info) const;
     bool acceptCmc(CardInfoPtr info) const;
-    bool acceptPowerToughness(CardInfoPtr info, CardFilter::Attr attr) const;
     bool acceptLoyalty(CardInfoPtr info) const;
     bool acceptRarity(CardInfoPtr info) const;
     bool acceptCardAttr(CardInfoPtr info, CardFilter::Attr attr) const;

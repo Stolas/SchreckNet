@@ -29,7 +29,7 @@
 
 Server_Card::Server_Card(QString _name, int _id, int _coord_x, int _coord_y, Server_CardZone *_zone)
     : zone(_zone), id(_id), coord_x(_coord_x), coord_y(_coord_y), name(_name), tapped(false), attacking(false),
-      facedown(false), color(), bvsString(), annotation(), destroyOnZoneChange(false), doesntUntap(false), parentCard(0),
+      facedown(false), color(), annotation(), destroyOnZoneChange(false), doesntUntap(false), parentCard(0),
       stashedCard(nullptr)
 {
 }
@@ -54,7 +54,6 @@ void Server_Card::resetState()
     counters.clear();
     setTapped(false);
     setAttacking(false);
-    setBVS(QString());
     setAnnotation(QString());
     setDoesntUntap(false);
 }
@@ -86,11 +85,6 @@ QString Server_Card::setAttribute(CardAttribute attribute, const QString &avalue
         case AttrColor:
             setColor(avalue);
             break;
-        case AttrBVS:
-            setBVS(avalue);
-            if (event)
-                event->set_attr_value(getBVS().toStdString());
-            return getBVS();
         case AttrAnnotation:
             setAnnotation(avalue);
             break;
@@ -142,9 +136,6 @@ void Server_Card::getInfo(ServerInfo_Card *info)
     }
     if (!color.isEmpty()) {
         info->set_color(color.toStdString());
-    }
-    if (!bvsString.isEmpty()) {
-        info->set_bvs(bvsString.toStdString());
     }
     if (!annotation.isEmpty()) {
         info->set_annotation(annotation.toStdString());

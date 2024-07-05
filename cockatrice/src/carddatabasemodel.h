@@ -20,8 +20,6 @@ public:
     {
         NameColumn,
         CardTypeColumn,
-        BleedColumn,
-        VotesColumn,
         ClanColumn,
         PoolCostColumn,
         BloodCostColumn,

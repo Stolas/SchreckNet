@@ -339,9 +339,6 @@ public:
     const QString getLoyalty() const;
     const QString getMainCardType() const;
     const QString getManaCost() const;
-    const QString getBleedVoteStrength() const;
-    const QString getBleed() const;
-    const QString getVotes() const;
     const QString getClans() const;
     const QString getPoolCost() const;
     const QString getBloodCost() const;

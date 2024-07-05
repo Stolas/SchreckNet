@@ -107,11 +107,6 @@ public:
         return doesntUntap;
     }
     void setDoesntUntap(bool _doesntUntap);
-    QString getBleedVotesStrength() const
-    {
-        return bvs;
-    }
-    void setBleedVotesStrength(const QString &_bvs);
     bool getDestroyOnZoneChange() const
     {
         return destroyOnZoneChange;
