@@ -7,6 +7,9 @@ Fix Draw Crypt Card
 VTES Specific Game Commands:
     * Influence Crypt Card
 
+Deck Editor:
+    * Instead of empty block which IDK why is there add a maincardtype
+
 Game Type:
     * Random Table Seating on Start.
     * Tournament Sitting at Start. (All dice roll, show four random crypt cards, pick location)

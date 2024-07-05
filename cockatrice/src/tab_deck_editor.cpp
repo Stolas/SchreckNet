@@ -70,8 +70,6 @@ void TabDeckEditor::createDeckDock()
     deckView->installEventFilter(&deckViewKeySignals);
     connect(deckView->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex &)), this,
             SLOT(updateCardInfoRight(const QModelIndex &, const QModelIndex &)));
-    connect(deckView, SIGNAL(doubleClicked(const QModelIndex &)), this, SLOT(actSwapCard()));
-    connect(&deckViewKeySignals, SIGNAL(onShiftS()), this, SLOT(actSwapCard()));
     connect(&deckViewKeySignals, SIGNAL(onEnter()), this, SLOT(actIncrement()));
     connect(&deckViewKeySignals, SIGNAL(onCtrlAltEqual()), this, SLOT(actIncrement()));
     connect(&deckViewKeySignals, SIGNAL(onCtrlAltMinus()), this, SLOT(actDecrement()));
@@ -389,11 +387,7 @@ void TabDeckEditor::createCentralFrame()
     connect(searchEdit, SIGNAL(textChanged(const QString &)), this, SLOT(updateSearch(const QString &)));
     connect(&searchKeySignals, SIGNAL(onEnter()), this, SLOT(actAddCard()));
     connect(&searchKeySignals, SIGNAL(onCtrlAltEqual()), this, SLOT(actAddCard()));
-    connect(&searchKeySignals, SIGNAL(onCtrlAltRBracket()), this, SLOT(actAddCardToSideboard()));
     connect(&searchKeySignals, SIGNAL(onCtrlAltMinus()), this, SLOT(actDecrementCard()));
-    connect(&searchKeySignals, SIGNAL(onCtrlAltLBracket()), this, SLOT(actDecrementCardFromSideboard()));
-    connect(&searchKeySignals, SIGNAL(onCtrlAltEnter()), this, SLOT(actAddCardToSideboard()));
-    connect(&searchKeySignals, SIGNAL(onCtrlEnter()), this, SLOT(actAddCardToSideboard()));
     connect(&searchKeySignals, SIGNAL(onCtrlC()), this, SLOT(copyDatabaseCellContents()));
     connect(help, &QAction::triggered, this, &TabDeckEditor::showSearchSyntaxHelp);
 
@@ -435,17 +429,10 @@ void TabDeckEditor::createCentralFrame()
     auto *tbAddCard = new QToolButton(this);
     tbAddCard->setDefaultAction(aAddCard);
 
-    aAddCardToSideboard = new QAction(QString(), this);
-    aAddCardToSideboard->setIcon(QPixmap("theme:icons/arrow_right_blue"));
-    connect(aAddCardToSideboard, SIGNAL(triggered()), this, SLOT(actAddCardToSideboard()));
-    auto *tbAddCardToSideboard = new QToolButton(this);
-    tbAddCardToSideboard->setDefaultAction(aAddCardToSideboard);
-
     searchLayout = new QHBoxLayout;
     searchLayout->setObjectName("searchLayout");
     searchLayout->addWidget(searchEdit);
     searchLayout->addWidget(tbAddCard);
-    searchLayout->addWidget(tbAddCardToSideboard);
 
     centralFrame = new QVBoxLayout;
     centralFrame->setObjectName("centralFrame");
@@ -467,9 +454,7 @@ void TabDeckEditor::databaseCustomMenu(QPoint point)
     // add to deck and sideboard options
     QAction *addToDeck, *addToSideboard;
     addToDeck = menu.addAction(tr("Add to Deck"));
-    addToSideboard = menu.addAction(tr("Add to Sideboard"));
     connect(addToDeck, SIGNAL(triggered()), this, SLOT(actAddCard()));
-    connect(addToSideboard, SIGNAL(triggered()), this, SLOT(actAddCardToSideboard()));
 
     // filling out the related cards submenu
     auto *relatedMenu = new QMenu(tr("Show Related cards"));
@@ -652,7 +637,6 @@ void TabDeckEditor::retranslateUi()
     aClose->setText(tr("&Close"));
 
     aAddCard->setText(tr("Add card to &maindeck"));
-    aAddCardToSideboard->setText(tr("Add card to &sideboard"));
 
     aRemoveCard->setText(tr("&Remove row"));
 
@@ -834,9 +818,9 @@ bool TabDeckEditor::actSaveDeckAs()
     QFileDialog dialog(this, tr("Save deck"));
     dialog.setDirectory(SettingsCache::instance().getDeckPath());
     dialog.setAcceptMode(QFileDialog::AcceptSave);
-    dialog.setDefaultSuffix("cod");
+    dialog.setDefaultSuffix("snDeck");
     dialog.setNameFilters(DeckLoader::fileNameFilters);
-    dialog.selectFile(deckModel->getDeckList()->getName().trimmed() + ".cod");
+    dialog.selectFile(deckModel->getDeckList()->getName().trimmed() + ".snDeck");
     if (!dialog.exec())
         return false;
 
@@ -969,11 +953,17 @@ CardInfoPtr TabDeckEditor::currentCardInfo() const
     return db->getCard(cardName);
 }
 
-void TabDeckEditor::addCardHelper(QString zoneName)
+void TabDeckEditor::addCardHelper()
 {
+    QString zoneName;
     const CardInfoPtr info = currentCardInfo();
     if (!info)
         return;
+    if (info->getIsCrypt()) {
+        zoneName = DECK_ZONE_CRYPT;
+    } else {
+        zoneName = DECK_ZONE_MAIN;
+    }
     if (info->getIsToken())
         zoneName = DECK_ZONE_TOKENS;
 
@@ -984,41 +974,9 @@ void TabDeckEditor::addCardHelper(QString zoneName)
     searchEdit->setSelection(0, searchEdit->text().length());
 }
 
-void TabDeckEditor::actSwapCard()
-{
-    const QModelIndex currentIndex = deckView->selectionModel()->currentIndex();
-    if (!currentIndex.isValid())
-        return;
-    const QString cardName = currentIndex.sibling(currentIndex.row(), 1).data().toString();
-    const QModelIndex gparent = currentIndex.parent().parent();
-
-    if (!gparent.isValid())
-        return;
-
-    const QString zoneName = gparent.sibling(gparent.row(), 1).data(Qt::EditRole).toString();
-    actDecrement();
-    const QString otherZoneName = zoneName == DECK_ZONE_MAIN ? DECK_ZONE_CRYPT : DECK_ZONE_MAIN;
-
-    // Third argument (true) says create the card no mater what, even if not in DB
-    QModelIndex newCardIndex = deckModel->addCard(cardName, otherZoneName, true);
-    recursiveExpand(newCardIndex);
-
-    setModified(true);
-    setSaveStatus(true);
-}
-
 void TabDeckEditor::actAddCard()
 {
-    if (QApplication::keyboardModifiers() & Qt::ControlModifier)
-        actAddCardToSideboard();
-    else
-        addCardHelper(DECK_ZONE_MAIN);
-    setSaveStatus(true);
-}
-
-void TabDeckEditor::actAddCardToSideboard()
-{
-    addCardHelper(DECK_ZONE_CRYPT);
+    addCardHelper();
     setSaveStatus(true);
 }
 
@@ -1067,11 +1025,6 @@ void TabDeckEditor::decrementCardHelper(QString zoneName)
 void TabDeckEditor::actDecrementCard()
 {
     decrementCardHelper(DECK_ZONE_MAIN);
-}
-
-void TabDeckEditor::actDecrementCardFromSideboard()
-{
-    decrementCardHelper(DECK_ZONE_CRYPT);
 }
 
 void TabDeckEditor::copyDatabaseCellContents()

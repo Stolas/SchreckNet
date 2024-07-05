@@ -108,7 +108,7 @@ InnerDecklistNode::~InnerDecklistNode()
 QString InnerDecklistNode::visibleNameFromName(const QString &_name)
 {
     if (_name == DECK_ZONE_MAIN) {
-        return QObject::tr("Maindeck");
+        return QObject::tr("Library");
     } else if (_name == DECK_ZONE_CRYPT) {
         return QObject::tr("Crypt");
     } else if (_name == DECK_ZONE_TOKENS) {

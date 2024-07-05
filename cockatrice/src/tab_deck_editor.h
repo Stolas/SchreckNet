@@ -72,14 +72,12 @@ private slots:
     void actClearFilterAll();
     void actClearFilterOne();
 
-    void actSwapCard();
+    // void actSwapCard();
     void actAddCard();
-    void actAddCardToSideboard();
     void actRemoveCard();
     void actIncrement();
     void actDecrement();
     void actDecrementCard();
-    void actDecrementCardFromSideboard();
     void copyDatabaseCellContents();
 
     void saveDeckRemoteFinished(const Response &r);
@@ -101,7 +99,7 @@ private slots:
 
 private:
     CardInfoPtr currentCardInfo() const;
-    void addCardHelper(QString zoneName);
+    void addCardHelper();
     void offsetCountAtIndex(const QModelIndex &idx, int offset);
     void decrementCardHelper(QString zoneName);
     void recursiveExpand(const QModelIndex &index);
@@ -134,7 +132,7 @@ private:
         *aSaveDeckToClipboardRaw, *aPrintDeck, *aExportDeckDecklist, *aAnalyzeDeckDeckstats, *aAnalyzeDeckTappedout,
         *aClose;
     QAction *aClearFilterAll, *aClearFilterOne;
-    QAction *aAddCard, *aAddCardToSideboard, *aRemoveCard, *aIncrement, *aDecrement;
+    QAction *aAddCard, *aRemoveCard, *aIncrement, *aDecrement;
     QAction *aResetLayout;
     QAction *aCardInfoDockVisible, *aCardInfoDockFloating, *aDeckDockVisible, *aDeckDockFloating, *aFilterDockVisible,
         *aFilterDockFloating;
