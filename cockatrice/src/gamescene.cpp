@@ -64,6 +64,7 @@ void GameScene::adjustPlayerRotation(int rotationAdjustment)
     rearrange();
 }
 
+/* Todo; Fix the order */
 void GameScene::rearrange()
 {
     playersByColumn.clear();
@@ -109,10 +110,12 @@ void GameScene::rearrange()
         const int rowsInColumn = rows - (playersCount % columns) * col; // only correct for max. 2 cols
         for (int j = 0; j < rowsInColumn; ++j) {
             Player *player = playersPlayingIter.next();
-            if (col == 0)
+            auto playerName = player->getName();
+            if (col == 0) {
                 playersByColumn[col].prepend(player);
-            else
+            } else {
                 playersByColumn[col].append(player);
+            }
             thisColumnHeight += player->boundingRect().height() + playerAreaSpacing;
             if (player->boundingRect().width() > columnWidth[col])
                 columnWidth[col] = player->boundingRect().width();
