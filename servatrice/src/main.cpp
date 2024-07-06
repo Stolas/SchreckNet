@@ -110,7 +110,7 @@ void myMessageOutput2(QtMsgType /*type*/, const QMessageLogContext &, const QStr
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
-    QCoreApplication::setOrganizationName("Cockatrice");
+    QCoreApplication::setOrganizationName("SchreckNET");
     QCoreApplication::setApplicationName("Servatrice");
     QCoreApplication::setApplicationVersion(VERSION_STRING);
 

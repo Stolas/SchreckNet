@@ -116,9 +116,9 @@ int main(int argc, char *argv[])
 
     // These values are only used by the settings loader/saver
     // Wrong or outdated values are kept to not break things
-    QCoreApplication::setOrganizationName("Cockatrice");
+    QCoreApplication::setOrganizationName("SchreckNET");
     QCoreApplication::setOrganizationDomain("cockatrice.de");
-    QCoreApplication::setApplicationName("Cockatrice");
+    QCoreApplication::setApplicationName("SchreckNET");
     QCoreApplication::setApplicationVersion(VERSION_STRING);
 
 #ifdef Q_OS_MAC
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 #endif
 
     QCommandLineParser parser;
-    parser.setApplicationDescription("Cockatrice");
+    parser.setApplicationDescription("SchreckNET");
     parser.addHelpOption();
     parser.addVersionOption();
 
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
     ui.setWindowIcon(QPixmap("theme:cockatrice"));
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     // set name of the app desktop file; used by wayland to load the window icon
-    QGuiApplication::setDesktopFileName("cockatrice");
+    QGuiApplication::setDesktopFileName("schrecknet");
 #endif
 
     SettingsCache::instance().setClientID(generateClientID());

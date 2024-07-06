@@ -74,11 +74,11 @@ endif()
 
 # A project name is needed for CPack
 # Version can be overriden by git tags, see cmake/getversion.cmake
-project("Cockatrice" VERSION 2.9.0)
+project("ScheckNET" VERSION 1.0.0) # Forked from Cockatrice 2.9.0
 
 # Set release name if not provided via env/cmake var
 if(NOT DEFINED GIT_TAG_RELEASENAME)
-  set(GIT_TAG_RELEASENAME "Rings of the Wild")
+  set(GIT_TAG_RELEASENAME "Tranquility")
 endif()
 
 # Use c++17 for all targets
@@ -246,7 +246,7 @@ endif()
 # Package builder
 set(CPACK_PACKAGE_CONTACT "Zach Halpern <zach@cockatrice.us>")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_NAME}")
-set(CPACK_PACKAGE_VENDOR "Cockatrice Development Team")
+set(CPACK_PACKAGE_VENDOR "SchreckNET Development Team")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/README.md")
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
 set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
@@ -268,7 +268,7 @@ if(UNIX)
     # linux
     if(CPACK_GENERATOR STREQUAL "RPM")
       set(CPACK_RPM_PACKAGE_LICENSE "GPLv2")
-      set(CPACK_RPM_MAIN_COMPONENT "cockatrice")
+      set(CPACK_RPM_MAIN_COMPONENT "schrecknet")
       if(Qt6_FOUND)
         set(CPACK_RPM_PACKAGE_REQUIRES "protobuf, qt6-qttools, qt6-qtsvg, qt6-qtmultimedia")
       elseif(Qt5_FOUND)
@@ -325,7 +325,7 @@ endif()
 
 if(WITH_CLIENT)
   add_subdirectory(cockatrice)
-  set(CPACK_INSTALL_CMAKE_PROJECTS "Cockatrice;Cockatrice;ALL;/" ${CPACK_INSTALL_CMAKE_PROJECTS})
+  set(CPACK_INSTALL_CMAKE_PROJECTS "SchreckNET;SchreckNET;ALL;/" ${CPACK_INSTALL_CMAKE_PROJECTS})
 endif()
 
 if(WITH_ORACLE)

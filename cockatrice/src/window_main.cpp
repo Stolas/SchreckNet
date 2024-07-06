@@ -75,8 +75,8 @@
 #define GITHUB_TROUBLESHOOTING_URL "https://github.com/Cockatrice/Cockatrice/wiki/Troubleshooting"
 #define GITHUB_FAQ_URL "https://github.com/Cockatrice/Cockatrice/wiki/Frequently-Asked-Questions"
 
-const QString MainWindow::appName = "Cockatrice";
-const QStringList MainWindow::fileNameFilters = QStringList() << QObject::tr("Cockatrice card database (*.xml)")
+const QString MainWindow::appName = "SchreckNET";
+const QStringList MainWindow::fileNameFilters = QStringList() << QObject::tr("SchreckNET card database (*.xml)")
                                                               << QObject::tr("All files (*.*)");
 
 void MainWindow::updateTabMenu(const QList<QMenu *> &newMenuList)
@@ -304,10 +304,12 @@ void MainWindow::actExit()
 void MainWindow::actAbout()
 {
     QMessageBox mb(
-        QMessageBox::NoIcon, tr("About Cockatrice"),
-        QString("<font size=\"8\"><b>Cockatrice</b></font> (" + QString::fromStdString(BUILD_ARCHITECTURE) + ")<br>" +
+        QMessageBox::NoIcon, tr("About SchreckNET"),
+        QString("<font size=\"8\"><b>SchreckNET</b></font> (" + QString::fromStdString(BUILD_ARCHITECTURE) + ")<br>" +
                 tr("Version") + QString(" %1").arg(VERSION_STRING) + "<br><br><b><a href='" + GITHUB_PAGES_URL + "'>" +
-                tr("Cockatrice Webpage") + "</a></b><br>" + "<br><b>" + tr("Project Manager:") +
+                tr("Cockatrice Webpage") + "</a></b><br>" + 
+                "<br><b>" + tr("SchreckNET is a Cockatrice Port, which is developed by these people:") +
+                "<br><b>" + tr("Project Manager:") +
                 "</b><br>Zach Halpern<br><br>" + "<b>" + tr("Past Project Managers:") +
                 "</b><br>Gavin Bisesi<br>Max-Wilhelm Bruker<br>Marcus Schütz<br><br>" + "<b>" + tr("Developers:") +
                 "</b><br>" + "<a href='" + GITHUB_CONTRIBUTORS_URL + "'>" + tr("Our Developers") + "</a><br>" +
@@ -586,13 +588,13 @@ void MainWindow::protocolVersionMismatch(int localVersion, int remoteVersion)
 {
     if (localVersion > remoteVersion)
         QMessageBox::critical(this, tr("Error"),
-                              tr("You are trying to connect to an obsolete server. Please downgrade your Cockatrice "
+                              tr("You are trying to connect to an obsolete server. Please downgrade your SchreckNET "
                                  "version or connect to a suitable server.\nLocal version is %1, remote version is %2.")
                                   .arg(localVersion)
                                   .arg(remoteVersion));
     else
         QMessageBox::critical(this, tr("Error"),
-                              tr("Your Cockatrice client is obsolete. Please update your Cockatrice version.\nLocal "
+                              tr("Your SchreckNET client is obsolete. Please update your SchreckNET version.\nLocal "
                                  "version is %1, remote version is %2.")
                                   .arg(localVersion)
                                   .arg(remoteVersion));
@@ -656,7 +658,7 @@ void MainWindow::retranslateUi()
 #if defined(__APPLE__) /* For OSX */
     cockatriceMenu->setTitle(tr("A&ctions"));
 #else
-    cockatriceMenu->setTitle(tr("&Cockatrice"));
+    cockatriceMenu->setTitle(tr("&SchreckNET"));
 #endif
 
     dbMenu->setTitle(tr("C&ard Database"));
