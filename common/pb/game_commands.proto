@@ -5,7 +5,7 @@ message GameCommand {
         LEAVE_GAME = 1001;
         GAME_SAY = 1002;
         SHUFFLE = 1003;
-        MULLIGAN = 1004;
+        // MULLIGAN = 1004; // This isn't Magic, one needs to just build a good deck.
         ROLL_DIE = 1005;
         DRAW_CARDS = 1006;
         UNDO_DRAW = 1007;
@@ -36,6 +36,7 @@ message GameCommand {
         UNCONCEDE = 1032;
         JUDGE = 1033;
         REVERSE_TURN = 1034;
+        DRAW_CRYPT_CARDS = 1035;
     }
     extensions 100 to max;
 }

@@ -172,22 +172,23 @@ void Server_Player::setupZones()
     // Create zones
     auto *deckZone = new Server_CardZone(this, "deck", false, ServerInfo_Zone::HiddenZone);
     addZone(deckZone);
-    auto *sbZone = new Server_CardZone(this, "sb", false, ServerInfo_Zone::HiddenZone);
-    addZone(sbZone);
+    auto *cryptZone = new Server_CardZone(this, "crypt", false, ServerInfo_Zone::HiddenZone);
+    addZone(cryptZone);
     addZone(new Server_CardZone(this, "table", true, ServerInfo_Zone::PublicZone));
     addZone(new Server_CardZone(this, "hand", false, ServerInfo_Zone::PrivateZone));
     addZone(new Server_CardZone(this, "stack", false, ServerInfo_Zone::PublicZone));
-    addZone(new Server_CardZone(this, "grave", false, ServerInfo_Zone::PublicZone));
+    addZone(new Server_CardZone(this, "ashheap", false, ServerInfo_Zone::PublicZone));
     addZone(new Server_CardZone(this, "rfg", false, ServerInfo_Zone::PublicZone));
 
-    addCounter(new Server_Counter(0, "life", makeColor(255, 255, 255), 25, 20));
-    addCounter(new Server_Counter(1, "w", makeColor(255, 255, 150), 20, 0));
-    addCounter(new Server_Counter(2, "u", makeColor(150, 150, 255), 20, 0));
-    addCounter(new Server_Counter(3, "b", makeColor(150, 150, 150), 20, 0));
-    addCounter(new Server_Counter(4, "r", makeColor(250, 150, 150), 20, 0));
-    addCounter(new Server_Counter(5, "g", makeColor(150, 255, 150), 20, 0));
-    addCounter(new Server_Counter(6, "x", makeColor(255, 255, 255), 20, 0));
-    addCounter(new Server_Counter(7, "storm", makeColor(255, 150, 30), 20, 0));
+    addCounter(new Server_Counter(0, "pool", makeColor(255, 50, 50), 25, 30)); 
+    addCounter(new Server_Counter(1, "victory points", makeColor(255, 255, 150), 20, 0));
+    addCounter(new Server_Counter(2, "votes in favour", makeColor(150, 150, 255), 20, 0));
+    addCounter(new Server_Counter(3, "votes against", makeColor(150, 150, 150), 20, 0));
+    addCounter(new Server_Counter(4, "bleed", makeColor(150, 150, 150), 20, 0)); /* Todo; what do we want with this. */
+    // addCounter(new Server_Counter(4, "r", makeColor(250, 150, 150), 20, 0));
+    // addCounter(new Server_Counter(5, "g", makeColor(150, 255, 150), 20, 0));
+    // addCounter(new Server_Counter(6, "x", makeColor(255, 255, 255), 20, 0));
+    // addCounter(new Server_Counter(7, "storm", makeColor(255, 150, 30), 20, 0));
 
     // ------------------------------------------------------------------
 
@@ -200,7 +201,7 @@ void Server_Player::setupZones()
         if (currentZone->getName() == DECK_ZONE_MAIN) {
             z = deckZone;
         } else if (currentZone->getName() == DECK_ZONE_CRYPT) {
-            z = sbZone;
+            z = cryptZone;
         } else {
             continue;
         }
@@ -216,36 +217,37 @@ void Server_Player::setupZones()
         }
     }
 
-    const QList<MoveCard_ToZone> &sideboardPlan = deck->getCurrentSideboardPlan();
-    for (const auto &m : sideboardPlan) {
-        const QString startZone = nameFromStdString(m.start_zone());
-        const QString targetZone = nameFromStdString(m.target_zone());
+    // const QList<MoveCard_ToZone> &sideboardPlan = deck->getCurrentSideboardPlan();
+    // for (const auto &m : sideboardPlan) {
+    //     const QString startZone = nameFromStdString(m.start_zone());
+    //     const QString targetZone = nameFromStdString(m.target_zone());
 
-        Server_CardZone *start, *target;
-        if (startZone == DECK_ZONE_MAIN) {
-            start = deckZone;
-        } else if (startZone == DECK_ZONE_CRYPT) {
-            start = sbZone;
-        } else {
-            continue;
-        }
-        if (targetZone == DECK_ZONE_MAIN) {
-            target = deckZone;
-        } else if (targetZone == DECK_ZONE_CRYPT) {
-            target = sbZone;
-        } else {
-            continue;
-        }
+    //     Server_CardZone *start, *target;
+    //     if (startZone == DECK_ZONE_MAIN) {
+    //         start = deckZone;
+    //     } else if (startZone == DECK_ZONE_CRYPT) {
+    //         start = cryptZone;
+    //     } else {
+    //         continue;
+    //     }
+    //     if (targetZone == DECK_ZONE_MAIN) {
+    //         target = deckZone;
+    //     } else if (targetZone == DECK_ZONE_CRYPT) {
+    //         target = cryptZone;
+    //     } else {
+    //         continue;
+    //     }
 
-        for (int j = 0; j < start->getCards().size(); ++j) {
-            if (start->getCards()[j]->getName() == nameFromStdString(m.card_name())) {
-                Server_Card *card = start->getCard(j, nullptr, true);
-                target->insertCard(card, -1, 0);
-                break;
-            }
-        }
-    }
+    //     for (int j = 0; j < start->getCards().size(); ++j) {
+    //         if (start->getCards()[j]->getName() == nameFromStdString(m.card_name())) {
+    //             Server_Card *card = start->getCard(j, nullptr, true);
+    //             target->insertCard(card, -1, 0);
+    //             break;
+    //         }
+    //     }
+    // }
 
+    cryptZone->shuffle();
     deckZone->shuffle();
 }
 
@@ -350,7 +352,23 @@ Response::ResponseCode Server_Player::drawCards(GameEventStorage &ges, int numbe
 
 Response::ResponseCode Server_Player::drawCryptCards(GameEventStorage &ges, int number)
 {
-    /* Todo; Draw the Crypt Card. */
+    Server_CardZone *cryptZone = zones.value("crypt");
+    if (cryptZone->getCards().size() < number) {
+        number = cryptZone->getCards().size();
+    }
+
+    Server_Card *card = cryptZone->getCard(0, nullptr, true);
+    if (!card) {
+        return Response::RespNothing;
+    }
+    qDebug() << card->getName();
+    Server_CardZone *targetZone = getZones().value("table");
+    if (!targetZone) {
+        return Response::RespNameNotFound;
+    }
+    targetZone->insertCard(card, 100, 200);
+    //targetZone->moveCardInRow(ges, card, 0, 0);
+
     return Response::RespOk;
 }
 
@@ -995,6 +1013,7 @@ Server_Player::cmdShuffle(const Command_Shuffle &cmd, ResponseContainer & /*rc*/
         return Response::RespContextError;
     }
 
+    /* Todo; SchreckNET allow crypt shuffle */
     if (cmd.has_zone_name() && cmd.zone_name() != "deck") {
         return Response::RespFunctionNotAllowed;
     }
@@ -1012,47 +1031,6 @@ Server_Player::cmdShuffle(const Command_Shuffle &cmd, ResponseContainer & /*rc*/
     event.set_end(cmd.end());
     ges.enqueueGameEvent(event, playerId);
     revealTopCardIfNeeded(zone, ges);
-
-    return Response::RespOk;
-}
-
-Response::ResponseCode
-Server_Player::cmdMulligan(const Command_Mulligan &cmd, ResponseContainer & /*rc*/, GameEventStorage &ges)
-{
-    if (spectator) {
-        return Response::RespFunctionNotAllowed;
-    }
-
-    if (!game->getGameStarted()) {
-        return Response::RespGameNotStarted;
-    }
-    if (conceded) {
-        return Response::RespContextError;
-    }
-
-    Server_CardZone *hand = zones.value("hand");
-    Server_CardZone *_deck = zones.value("deck");
-    int number = cmd.number();
-
-    if (!hand->getCards().isEmpty()) {
-        auto cardsToMove = QList<const CardToMove *>();
-        for (auto &card : hand->getCards()) {
-            auto *cardToMove = new CardToMove;
-            cardToMove->set_card_id(card->getId());
-            cardsToMove.append(cardToMove);
-        }
-        moveCard(ges, hand, cardsToMove, _deck, -1, 0, false);
-        qDeleteAll(cardsToMove);
-    }
-
-    _deck->shuffle();
-    ges.enqueueGameEvent(Event_Shuffle(), playerId);
-
-    drawCards(ges, number);
-
-    Context_Mulligan context;
-    context.set_number(static_cast<google::protobuf::uint32>(hand->getCards().size()));
-    ges.setGameEventContext(context);
 
     return Response::RespOk;
 }
@@ -2178,9 +2156,9 @@ Server_Player::processGameCommand(const GameCommand &command, ResponseContainer 
         case GameCommand::SHUFFLE:
             return cmdShuffle(command.GetExtension(Command_Shuffle::ext), rc, ges);
             break;
-        case GameCommand::MULLIGAN:
-            return cmdMulligan(command.GetExtension(Command_Mulligan::ext), rc, ges);
-            break;
+        // case GameCommand::MULLIGAN:
+        //     return cmdMulligan(command.GetExtension(Command_Mulligan::ext), rc, ges);
+        //     break;
         case GameCommand::ROLL_DIE:
             return cmdRollDie(command.GetExtension(Command_RollDie::ext), rc, ges);
             break;
@@ -2267,6 +2245,9 @@ Server_Player::processGameCommand(const GameCommand &command, ResponseContainer 
             break;
         case GameCommand::REVERSE_TURN:
             return cmdReverseTurn(command.GetExtension(Command_ReverseTurn::ext), rc, ges);
+            break;
+        case 1035: //GameCommand::DRAW_CRYPT_CARDS :
+            return cmdDrawCryptCards(command.GetExtension(Command_DrawCryptCards::ext), rc, ges);
             break;
         default:
             return Response::RespInvalidCommand;

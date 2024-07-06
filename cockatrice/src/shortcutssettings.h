@@ -557,6 +557,13 @@ private:
         {"Player/aDrawCards", ShortcutKey(QT_TRANSLATE_NOOP("shortcutsTab", "Draw Multiple Cards..."),
                                           parseSequenceString("Ctrl+E"),
                                           ShortcutGroup::Drawing)},
+
+        {"Player/aDrawCryptCard", ShortcutKey(QT_TRANSLATE_NOOP("shortcutsTab", "Draw a Crypt Card"),
+                                          parseSequenceString("Ctrl+C"),
+                                          ShortcutGroup::Drawing)},
+        {"Player/aDrawCryptCards", ShortcutKey(QT_TRANSLATE_NOOP("shortcutsTab", "Draw Multiple Crypt Cards..."),
+                                          parseSequenceString("Ctrl+Shift+C"),
+                                          ShortcutGroup::Drawing)},
         {"Player/aUndoDraw", ShortcutKey(QT_TRANSLATE_NOOP("shortcutsTab", "Undo Draw"),
                                          parseSequenceString("Ctrl+Shift+D"),
                                          ShortcutGroup::Drawing)},

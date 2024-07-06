@@ -184,37 +184,37 @@ void TabGame::refreshShortcuts()
     for (int i = 0; i < phaseActions.size(); ++i) {
         QAction *temp = phaseActions.at(i);
         switch (i) {
-            case 0:
+            case 0: /* Unlock */
                 temp->setShortcuts(shortcuts.getShortcut("Player/phase0"));
                 break;
-            case 1:
+            case 1: /* Master */
                 temp->setShortcuts(shortcuts.getShortcut("Player/phase1"));
                 break;
-            case 2:
+            case 2: /* Minion */
                 temp->setShortcuts(shortcuts.getShortcut("Player/phase2"));
                 break;
-            case 3:
+            case 3: /* Influence */
                 temp->setShortcuts(shortcuts.getShortcut("Player/phase3"));
                 break;
-            case 4:
+            case 4: /* Discard */
                 temp->setShortcuts(shortcuts.getShortcut("Player/phase4"));
                 break;
-            case 5:
+            case 5: /* Todo: Remove */
                 temp->setShortcuts(shortcuts.getShortcut("Player/phase5"));
                 break;
-            case 6:
+            case 6: /* Todo: Remove */
                 temp->setShortcuts(shortcuts.getShortcut("Player/phase6"));
                 break;
-            case 7:
+            case 7: /* Todo: Remove */
                 temp->setShortcuts(shortcuts.getShortcut("Player/phase7"));
                 break;
-            case 8:
+            case 8: /* Todo: Remove */
                 temp->setShortcuts(shortcuts.getShortcut("Player/phase8"));
                 break;
-            case 9:
+            case 9: /* Todo: Remove */
                 temp->setShortcuts(shortcuts.getShortcut("Player/phase9"));
                 break;
-            case 10:
+            case 10: /* Todo: Remove */
                 temp->setShortcuts(shortcuts.getShortcut("Player/phase10"));
                 break;
             default:;

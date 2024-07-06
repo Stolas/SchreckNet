@@ -135,18 +135,18 @@ Player::Player(const ServerInfo_User &info, int _id, bool _local, bool _judge, T
 
     qreal h = _deck->boundingRect().width() + 5;
 
+    PileZone *crypt = new PileZone(this, "crypt", true, false, playerArea);
+    crypt->setPos(base + QPointF(0, h + 10));
+
     auto *handCounter = new HandCounter(playerArea);
-    handCounter->setPos(base + QPointF(0, h + 10));
+    handCounter->setPos(base + QPointF(0, 2 * h + 15));
     qreal h2 = handCounter->boundingRect().height();
 
     PileZone *grave = new PileZone(this, "grave", false, true, playerArea);
-    grave->setPos(base + QPointF(0, h + h2 + 10));
+    grave->setPos(base + QPointF(0, 2 * h + h2 + 15));
 
     PileZone *rfg = new PileZone(this, "rfg", false, true, playerArea);
-    rfg->setPos(base + QPointF(0, 2 * h + h2 + 10));
-
-    PileZone *sb = new PileZone(this, "sb", false, false, playerArea);
-    sb->setVisible(false);
+    rfg->setPos(base + QPointF(0, 3 * h + h2 + 15));
 
     table = new TableZone(this, this);
     connect(table, SIGNAL(sizeChanged()), this, SLOT(updateBoundingRect()));
@@ -171,7 +171,7 @@ Player::Player(const ServerInfo_User &info, int _id, bool _local, bool _judge, T
         aMoveHandToBottomLibrary = new QAction(this);
         aMoveHandToBottomLibrary->setData(QList<QVariant>() << "deck" << -1);
         aMoveHandToGrave = new QAction(this);
-        aMoveHandToGrave->setData(QList<QVariant>() << "grave" << 0);
+        aMoveHandToGrave->setData(QList<QVariant>() << "ash heap" << 0);
         aMoveHandToRfg = new QAction(this);
         aMoveHandToRfg->setData(QList<QVariant>() << "rfg" << 0);
 
@@ -233,23 +233,20 @@ Player::Player(const ServerInfo_User &info, int _id, bool _local, bool _judge, T
     connect(aViewRfg, SIGNAL(triggered()), this, SLOT(actViewRfg()));
 
     if (local || judge) {
-        aViewSideboard = new QAction(this);
-        connect(aViewSideboard, SIGNAL(triggered()), this, SLOT(actViewSideboard()));
-
         aDrawCard = new QAction(this);
         connect(aDrawCard, SIGNAL(triggered()), this, SLOT(actDrawCard()));
         aDrawCards = new QAction(this);
         connect(aDrawCards, SIGNAL(triggered()), this, SLOT(actDrawCards()));
         aDrawCryptCard = new QAction(this);
-        connect(aDrawCryptCard, SIGNAL(triggered()), this, SLOT(actCryptDrawCard()));
-        aDrawCards = new QAction(this);
-        connect(aDrawCards, SIGNAL(triggered()), this, SLOT(actDrawCards()));
+        connect(aDrawCryptCard, SIGNAL(triggered()), this, SLOT(actDrawCryptCard()));
+        aDrawCryptCards = new QAction(this);
+        connect(aDrawCryptCards, SIGNAL(triggered()), this, SLOT(actDrawCryptCards()));
         aUndoDraw = new QAction(this);
         connect(aUndoDraw, SIGNAL(triggered()), this, SLOT(actUndoDraw()));
         aShuffle = new QAction(this);
         connect(aShuffle, SIGNAL(triggered()), this, SLOT(actShuffle()));
-        aMulligan = new QAction(this);
-        connect(aMulligan, SIGNAL(triggered()), this, SLOT(actMulligan()));
+        // aMulligan = new QAction(this);
+        // connect(aMulligan, SIGNAL(triggered()), this, SLOT(actMulligan()));
 
         aMoveTopToPlay = new QAction(this);
         connect(aMoveTopToPlay, SIGNAL(triggered()), this, SLOT(actMoveTopCardToPlay()));
@@ -297,8 +294,8 @@ Player::Player(const ServerInfo_User &info, int _id, bool _local, bool _judge, T
         playerLists.append(mRevealHand = handMenu->addMenu(QString()));
         playerLists.append(mRevealRandomHandCard = handMenu->addMenu(QString()));
         handMenu->addSeparator();
-        handMenu->addAction(aMulligan);
-        handMenu->addSeparator();
+        // handMenu->addAction(aMulligan);
+        // handMenu->addSeparator();
         moveHandMenu = handMenu->addTearOffMenu(QString());
         moveHandMenu->addAction(aMoveHandToTopLibrary);
         moveHandMenu->addAction(aMoveHandToBottomLibrary);
@@ -311,6 +308,10 @@ Player::Player(const ServerInfo_User &info, int _id, bool _local, bool _judge, T
         libraryMenu = playerMenu->addTearOffMenu(QString());
         libraryMenu->addAction(aDrawCard);
         libraryMenu->addAction(aDrawCards);
+        libraryMenu->addAction(aUndoDraw);
+        libraryMenu->addSeparator();
+        libraryMenu->addAction(aDrawCryptCard);
+        libraryMenu->addAction(aDrawCryptCards);
         libraryMenu->addAction(aUndoDraw);
         libraryMenu->addSeparator();
         libraryMenu->addAction(aShuffle);
@@ -388,9 +389,6 @@ Player::Player(const ServerInfo_User &info, int _id, bool _local, bool _judge, T
         moveRfgMenu->addSeparator();
         moveRfgMenu->addAction(aMoveRfgToGrave);
 
-        sbMenu = playerMenu->addMenu(QString());
-        sbMenu->addAction(aViewSideboard);
-        sb->setMenu(sbMenu, aViewSideboard);
 
         aUntapAll = new QAction(this);
         connect(aUntapAll, SIGNAL(triggered()), this, SLOT(actUntapAll()));
@@ -448,7 +446,6 @@ Player::Player(const ServerInfo_User &info, int _id, bool _local, bool _judge, T
 
     if (!local && !judge) {
         countersMenu = nullptr;
-        sbMenu = nullptr;
         aCreateAnotherToken = nullptr;
         createPredefinedTokenMenu = nullptr;
     }
@@ -465,32 +462,6 @@ Player::Player(const ServerInfo_User &info, int _id, bool _local, bool _judge, T
     connect(aUnattach, SIGNAL(triggered()), this, SLOT(actUnattach()));
     aDrawArrow = new QAction(this);
     connect(aDrawArrow, SIGNAL(triggered()), this, SLOT(actDrawArrow()));
-    aIncB = new QAction(this);
-    connect(aIncB, SIGNAL(triggered()), this, SLOT(actIncB()));
-    aDecB = new QAction(this);
-    connect(aDecB, SIGNAL(triggered()), this, SLOT(actDecB()));
-    aIncV = new QAction(this);
-    connect(aIncV, SIGNAL(triggered()), this, SLOT(actIncV()));
-    aDecV = new QAction(this);
-    connect(aDecB, SIGNAL(triggered()), this, SLOT(actDecV()));
-    aIncS = new QAction(this);
-    connect(aIncS, SIGNAL(triggered()), this, SLOT(actIncS()));
-    aDecS = new QAction(this);
-    connect(aDecS, SIGNAL(triggered()), this, SLOT(actDecS()));
-    aIncBVS = new QAction(this);
-    connect(aIncBVS, SIGNAL(triggered()), this, SLOT(actIncVBS()));
-    aDecBVS = new QAction(this);
-    connect(aDecBVS, SIGNAL(triggered()), this, SLOT(actDecBVS()));
-    aFlowB = new QAction(this);
-    connect(aFlowB, SIGNAL(triggered()), this, SLOT(actFlowB()));
-    aFlowV = new QAction(this);
-    connect(aFlowV, SIGNAL(triggered()), this, SLOT(actFlowV()));
-    aFlowS = new QAction(this);
-    connect(aFlowS, SIGNAL(triggered()), this, SLOT(actFlowS()));
-    aSetBVS = new QAction(this);
-    connect(aSetBVS, SIGNAL(triggered()), this, SLOT(actSetBVS()));
-    aResetBVS = new QAction(this);
-    connect(aResetBVS, SIGNAL(triggered()), this, SLOT(actResetBVS()));
     aSetAnnotation = new QAction(this);
     connect(aSetAnnotation, SIGNAL(triggered()), this, SLOT(actSetAnnotation()));
     aFlip = new QAction(this);
@@ -733,31 +704,31 @@ void Player::updateBoundingRect()
 
 void Player::retranslateUi()
 {
-    aViewGraveyard->setText(tr("&View graveyard"));
+    aViewGraveyard->setText(tr("&View ashheap"));
     aViewRfg->setText(tr("&View exile"));
 
     playerMenu->setTitle(tr("Player \"%1\"").arg(QString::fromStdString(userInfo->name())));
-    graveMenu->setTitle(tr("&Graveyard"));
+    graveMenu->setTitle(tr("&Ashheap"));
     rfgMenu->setTitle(tr("&Exile"));
 
     if (local || judge) {
         moveHandMenu->setTitle(tr("&Move hand to..."));
         aMoveHandToTopLibrary->setText(tr("&Top of library"));
         aMoveHandToBottomLibrary->setText(tr("&Bottom of library"));
-        aMoveHandToGrave->setText(tr("&Graveyard"));
-        aMoveHandToRfg->setText(tr("&Exile"));
+        aMoveHandToGrave->setText(tr("&Ashheap"));
+        aMoveHandToRfg->setText(tr("&Removed from Game"));
 
-        moveGraveMenu->setTitle(tr("&Move graveyard to..."));
+        moveGraveMenu->setTitle(tr("&Move ashheap to..."));
         aMoveGraveToTopLibrary->setText(tr("&Top of library"));
         aMoveGraveToBottomLibrary->setText(tr("&Bottom of library"));
         aMoveGraveToHand->setText(tr("&Hand"));
-        aMoveGraveToRfg->setText(tr("&Exile"));
+        aMoveGraveToRfg->setText(tr("&Removed"));
 
         moveRfgMenu->setTitle(tr("&Move exile to..."));
         aMoveRfgToTopLibrary->setText(tr("&Top of library"));
         aMoveRfgToBottomLibrary->setText(tr("&Bottom of library"));
         aMoveRfgToHand->setText(tr("&Hand"));
-        aMoveRfgToGrave->setText(tr("&Graveyard"));
+        aMoveRfgToGrave->setText(tr("&Ashheap"));
 
         aViewLibrary->setText(tr("&View library"));
         aViewHand->setText(tr("&View hand"));
@@ -769,20 +740,21 @@ void Player::retranslateUi()
         aAlwaysRevealTopCard->setText(tr("&Always reveal top card"));
         aAlwaysLookAtTopCard->setText(tr("&Always look at top card"));
         aOpenDeckInDeckEditor->setText(tr("&Open deck in deck editor"));
-        aViewSideboard->setText(tr("&View sideboard"));
         aDrawCard->setText(tr("&Draw card"));
         aDrawCards->setText(tr("D&raw cards..."));
+        aDrawCryptCard->setText(tr("Draw &crypt"));
+        aDrawCryptCards->setText(tr("D&raw crypt cards..."));
         aUndoDraw->setText(tr("&Undo last draw"));
-        aMulligan->setText(tr("Take &mulligan"));
+        // aMulligan->setText(tr("Take &mulligan"));
         aShuffle->setText(tr("&Shuffle"));
 
         aMoveTopToPlay->setText(tr("&Play top card"));
         aMoveTopToPlayFaceDown->setText(tr("Play top card &face down"));
         aMoveTopCardToBottom->setText(tr("Put top card on &bottom"));
-        aMoveTopCardToGraveyard->setText(tr("Move top card to grave&yard"));
+        aMoveTopCardToGraveyard->setText(tr("Move top card to ash&heap"));
         aMoveTopCardToExile->setText(tr("Move top card to e&xile"));
-        aMoveTopCardsToGraveyard->setText(tr("Move top cards to &graveyard..."));
-        aMoveTopCardsToExile->setText(tr("Move top cards to &exile..."));
+        aMoveTopCardsToGraveyard->setText(tr("Move top cards to &ashheap..."));
+        aMoveTopCardsToExile->setText(tr("Move top cards to &removed..."));
         aMoveTopCardsUntil->setText(tr("Put top cards on stack &until..."));
 
         aDrawBottomCard->setText(tr("&Draw bottom card"));
@@ -799,7 +771,6 @@ void Player::retranslateUi()
         mRevealHand->setTitle(tr("&Reveal hand to..."));
         mRevealRandomHandCard->setTitle(tr("Reveal r&andom card to..."));
         mRevealRandomGraveyardCard->setTitle(tr("Reveal random card to..."));
-        sbMenu->setTitle(tr("&Sideboard"));
         libraryMenu->setTitle(tr("&Library"));
         countersMenu->setTitle(tr("&Counters"));
 
@@ -840,19 +811,19 @@ void Player::retranslateUi()
     aAttach->setText(tr("Attac&h to card..."));
     aUnattach->setText(tr("Unattac&h"));
     aDrawArrow->setText(tr("&Draw arrow..."));
-    aIncB->setText(tr("&Increase bleed"));
-    aDecB->setText(tr("&Decrease bleed"));
-    aIncV->setText(tr("I&ncrease votes"));
-    aDecV->setText(tr("D&ecrease votes"));
-    aIncS->setText(tr("I&ncrease strength"));
-    aDecS->setText(tr("D&ecrease strength"));
-    aIncBVS->setText(tr("In&crease bleed, votes, and strength"));
-    aDecBVS->setText(tr("Dec&rease bleed, votes, and strength"));
-    aFlowB->setText(tr("TODO DELETE"));
-    aFlowB->setText(tr("TODO DELETE"));
-    aFlowS->setText(tr("TODO DELETE"));
-    aSetBVS->setText(tr("Set &strength, votes, and strength..."));
-    aResetBVS->setText(tr("Reset b&eed, votes, and strength"));
+    // aIncB->setText(tr("&Increase bleed"));
+    // aDecB->setText(tr("&Decrease bleed"));
+    // aIncV->setText(tr("I&ncrease votes"));
+    // aDecV->setText(tr("D&ecrease votes"));
+    // aIncS->setText(tr("I&ncrease strength"));
+    // aDecS->setText(tr("D&ecrease strength"));
+    // aIncBVS->setText(tr("In&crease bleed, votes, and strength"));
+    // aDecBVS->setText(tr("Dec&rease bleed, votes, and strength"));
+    // aFlowB->setText(tr("TODO DELETE"));
+    // aFlowB->setText(tr("TODO DELETE"));
+    // aFlowS->setText(tr("TODO DELETE"));
+    // aSetBVS->setText(tr("Set &strength, votes, and strength..."));
+    // aResetBVS->setText(tr("Reset b&eed, votes, and strength"));
     aSetAnnotation->setText(tr("&Set annotation..."));
 
     QStringList counterColors;
@@ -874,7 +845,7 @@ void Player::retranslateUi()
     aMoveToXfromTopOfLibrary->setText(tr("X cards from the top of library..."));
     aMoveToBottomLibrary->setText(tr("&Bottom of library in random order"));
     aMoveToHand->setText(tr("&Hand"));
-    aMoveToGraveyard->setText(tr("&Graveyard"));
+    aMoveToGraveyard->setText(tr("&Ashheap"));
     aMoveToExile->setText(tr("&Exile"));
 
     QMapIterator<QString, CardZone *> zoneIterator(zones);
@@ -897,17 +868,17 @@ void Player::setShortcutsActive()
     aAttach->setShortcuts(shortcuts.getShortcut("Player/aAttach"));
     aUnattach->setShortcuts(shortcuts.getShortcut("Player/aUnattach"));
     aDrawArrow->setShortcuts(shortcuts.getShortcut("Player/aDrawArrow"));
-    aIncB->setShortcuts(shortcuts.getShortcut("Player/aIncB"));
-    aDecB->setShortcuts(shortcuts.getShortcut("Player/aDecB"));
-    aIncV->setShortcuts(shortcuts.getShortcut("Player/aIncV"));
-    aDecV->setShortcuts(shortcuts.getShortcut("Player/aDecV"));
-    aIncS->setShortcuts(shortcuts.getShortcut("Player/aIncS"));
-    aDecS->setShortcuts(shortcuts.getShortcut("Player/aDecS"));
-    aIncBVS->setShortcuts(shortcuts.getShortcut("Player/aIncBVS"));
-    aDecBVS->setShortcuts(shortcuts.getShortcut("Player/aDecBVS"));
-    aFlowB->setShortcuts(shortcuts.getShortcut("Player/aFlowB"));
-    aSetBVS->setShortcuts(shortcuts.getShortcut("Player/aSetBVS"));
-    aResetBVS->setShortcuts(shortcuts.getShortcut("Player/aResetBVS"));
+    // aIncB->setShortcuts(shortcuts.getShortcut("Player/aIncB"));
+    // aDecB->setShortcuts(shortcuts.getShortcut("Player/aDecB"));
+    // aIncV->setShortcuts(shortcuts.getShortcut("Player/aIncV"));
+    // aDecV->setShortcuts(shortcuts.getShortcut("Player/aDecV"));
+    // aIncS->setShortcuts(shortcuts.getShortcut("Player/aIncS"));
+    // aDecS->setShortcuts(shortcuts.getShortcut("Player/aDecS"));
+    // aIncBVS->setShortcuts(shortcuts.getShortcut("Player/aIncBVS"));
+    // aDecBVS->setShortcuts(shortcuts.getShortcut("Player/aDecBVS"));
+    // aFlowB->setShortcuts(shortcuts.getShortcut("Player/aFlowB"));
+    // aSetBVS->setShortcuts(shortcuts.getShortcut("Player/aSetBVS"));
+    // aResetBVS->setShortcuts(shortcuts.getShortcut("Player/aResetBVS"));
     aSetAnnotation->setShortcuts(shortcuts.getShortcut("Player/aSetAnnotation"));
     aMoveToTopLibrary->setShortcuts(shortcuts.getShortcut("Player/aMoveToTopLibrary"));
     aMoveToBottomLibrary->setShortcuts(shortcuts.getShortcut("Player/aMoveToBottomLibrary"));
@@ -945,15 +916,16 @@ void Player::setShortcutsActive()
         counterIterator.next().value()->setShortcutsActive();
     }
 
-    aViewSideboard->setShortcut(shortcuts.getSingleShortcut("Player/aViewSideboard"));
     aViewLibrary->setShortcut(shortcuts.getSingleShortcut("Player/aViewLibrary"));
     aViewHand->setShortcut(shortcuts.getSingleShortcut("Player/aViewHand"));
     aViewTopCards->setShortcut(shortcuts.getSingleShortcut("Player/aViewTopCards"));
     aViewGraveyard->setShortcut(shortcuts.getSingleShortcut("Player/aViewGraveyard"));
     aDrawCard->setShortcut(shortcuts.getSingleShortcut("Player/aDrawCard"));
     aDrawCards->setShortcut(shortcuts.getSingleShortcut("Player/aDrawCards"));
+    aDrawCryptCard->setShortcut(shortcuts.getSingleShortcut("Player/aDrawCryptCard"));
+    aDrawCryptCards->setShortcut(shortcuts.getSingleShortcut("Player/aDrawCryptCards"));
     aUndoDraw->setShortcut(shortcuts.getSingleShortcut("Player/aUndoDraw"));
-    aMulligan->setShortcut(shortcuts.getSingleShortcut("Player/aMulligan"));
+    // aMulligan->setShortcut(shortcuts.getSingleShortcut("Player/aMulligan"));
     aShuffle->setShortcut(shortcuts.getSingleShortcut("Player/aShuffle"));
     aUntapAll->setShortcut(shortcuts.getSingleShortcut("Player/aUntapAll"));
     aRollDie->setShortcut(shortcuts.getSingleShortcut("Player/aRollDie"));
@@ -986,15 +958,15 @@ void Player::setShortcutsInactive()
 {
     shortcutsActive = false;
 
-    aViewSideboard->setShortcut(QKeySequence());
     aViewLibrary->setShortcut(QKeySequence());
     aViewHand->setShortcut(QKeySequence());
     aViewTopCards->setShortcut(QKeySequence());
     aViewGraveyard->setShortcut(QKeySequence());
     aDrawCard->setShortcut(QKeySequence());
     aDrawCards->setShortcut(QKeySequence());
+    aDrawCryptCard->setShortcut(QKeySequence());
+    aDrawCryptCards->setShortcut(QKeySequence());
     aUndoDraw->setShortcut(QKeySequence());
-    aMulligan->setShortcut(QKeySequence());
     aShuffle->setShortcut(QKeySequence());
     aUntapAll->setShortcut(QKeySequence());
     aRollDie->setShortcut(QKeySequence());
@@ -1146,11 +1118,6 @@ void Player::actViewRfg()
     static_cast<GameScene *>(scene())->toggleZoneView(this, "rfg", -1);
 }
 
-void Player::actViewSideboard()
-{
-    static_cast<GameScene *>(scene())->toggleZoneView(this, "sb", -1);
-}
-
 void Player::actShuffle()
 {
     sendGameCommand(Command_Shuffle());
@@ -1171,33 +1138,33 @@ void Player::actDrawCryptCard()
 }
 
 
-void Player::actMulligan()
-{
-    int startSize = SettingsCache::instance().getStartingHandSize();
-    int handSize = zones.value("hand")->getCards().size();
-    int deckSize = zones.value("deck")->getCards().size() + handSize; // hand is shuffled back into the deck
-    bool ok;
-    int number = QInputDialog::getInt(game, tr("Draw hand"),
-                                      tr("Number of cards: (max. %1)").arg(deckSize) + '\n' +
-                                          tr("0 and lower are in comparison to current hand size"),
-                                      startSize, -handSize, deckSize, 1, &ok);
-    if (!ok) {
-        return;
-    }
-    Command_Mulligan cmd;
-    if (number < 1) {
-        if (handSize == 0) {
-            return;
-        }
-        cmd.set_number(handSize + number);
-    } else {
-        cmd.set_number(number);
-    }
-    sendGameCommand(cmd);
-    if (startSize != number) {
-        SettingsCache::instance().setStartingHandSize(number);
-    }
-}
+// void Player::actMulligan()
+// {
+//     int startSize = SettingsCache::instance().getStartingHandSize();
+//     int handSize = zones.value("hand")->getCards().size();
+//     int deckSize = zones.value("deck")->getCards().size() + handSize; // hand is shuffled back into the deck
+//     bool ok;
+//     int number = QInputDialog::getInt(game, tr("Draw hand"),
+//                                       tr("Number of cards: (max. %1)").arg(deckSize) + '\n' +
+//                                           tr("0 and lower are in comparison to current hand size"),
+//                                       startSize, -handSize, deckSize, 1, &ok);
+//     if (!ok) {
+//         return;
+//     }
+//     Command_Mulligan cmd;
+//     if (number < 1) {
+//         if (handSize == 0) {
+//             return;
+//         }
+//         cmd.set_number(handSize + number);
+//     } else {
+//         cmd.set_number(number);
+//     }
+//     sendGameCommand(cmd);
+//     if (startSize != number) {
+//         SettingsCache::instance().setStartingHandSize(number);
+//     }
+// }
 
 void Player::actDrawCards()
 {
@@ -1218,7 +1185,7 @@ void Player::actDrawCryptCards()
     int deckSize = zones.value("crypt")->getCards().size();
     bool ok;
     int number = QInputDialog::getInt(game, tr("Draw crypt cards"), tr("Number of cards: (max. %1)").arg(deckSize),
-                                      defaultNumberTopCards, 1, deckSize, 1, &ok);
+                                      defaultNumberCryptCards, 1, deckSize, 1, &ok);
     if (ok) {
         defaultNumberTopCards = number;
         Command_DrawCryptCards cmd;
@@ -2642,7 +2609,7 @@ AbstractCounter *Player::addCounter(int counterId, const QString &name, QColor c
     }
 
     AbstractCounter *ctr;
-    if (name == "life") {
+    if (name == "pool") {
         ctr = playerTarget->addCounter(counterId, name, value);
     } else {
         ctr = new GeneralCounter(this, counterId, name, color, radius, value, true, this, game);
@@ -3265,7 +3232,6 @@ void Player::updateCardMenu(const CardItem *card)
     }
 
     QMenu *cardMenu = card->getCardMenu();
-    QMenu *ptMenu = card->getBVSMenu();
     QMenu *moveMenu = card->getMoveMenu();
 
     cardMenu->clear();
@@ -3303,26 +3269,6 @@ void Player::updateCardMenu(const CardItem *card)
             if (card->getZone()->getName() == "table") {
                 // Card is on the battlefield
 
-                if (ptMenu->isEmpty()) {
-                    ptMenu->addAction(aIncB);
-                    ptMenu->addAction(aDecB);
-                    ptMenu->addAction(aFlowB);
-                    ptMenu->addSeparator();
-                    ptMenu->addAction(aIncV);
-                    ptMenu->addAction(aDecV);
-                    ptMenu->addAction(aFlowV);
-                    ptMenu->addSeparator();
-                    ptMenu->addAction(aIncS);
-                    ptMenu->addAction(aDecS);
-                    ptMenu->addAction(aFlowS);
-                    ptMenu->addSeparator();
-                    ptMenu->addAction(aIncBVS);
-                    ptMenu->addAction(aDecBVS);
-                    ptMenu->addSeparator();
-                    ptMenu->addAction(aSetBVS);
-                    ptMenu->addAction(aResetBVS);
-                }
-
                 cardMenu->addAction(aTap);
                 cardMenu->addAction(aDoesntUntap);
                 cardMenu->addAction(aFlip);
@@ -3340,7 +3286,6 @@ void Player::updateCardMenu(const CardItem *card)
                 }
                 cardMenu->addAction(aDrawArrow);
                 cardMenu->addSeparator();
-                cardMenu->addMenu(ptMenu);
                 cardMenu->addAction(aSetAnnotation);
                 cardMenu->addSeparator();
                 cardMenu->addAction(aClone);

@@ -160,7 +160,7 @@ public slots:
     void actDrawCryptCard();
     void actDrawCryptCards();
     void actUndoDraw();
-    void actMulligan();
+    // void actMulligan();
     void actMoveTopCardToPlay();
     void actMoveTopCardToPlayFaceDown();
     void actMoveTopCardToGrave();
@@ -187,7 +187,6 @@ public slots:
     void actViewGraveyard();
     void actRevealRandomGraveyardCard();
     void actViewRfg();
-    void actViewSideboard();
 
     void actSayMessage();
 private slots:
@@ -217,7 +216,7 @@ private slots:
 
 private:
     TabGame *game;
-    QMenu *sbMenu, *countersMenu, *sayMenu, *createPredefinedTokenMenu, *mRevealLibrary, *mRevealTopCard, *mRevealHand,
+    QMenu *countersMenu, *sayMenu, *createPredefinedTokenMenu, *mRevealLibrary, *mRevealTopCard, *mRevealHand,
         *mRevealRandomHandCard, *mRevealRandomGraveyardCard;
     TearOffMenu *moveGraveMenu, *moveRfgMenu, *graveMenu, *moveHandMenu, *handMenu, *libraryMenu, *topLibraryMenu,
         *bottomLibraryMenu, *rfgMenu, *playerMenu;
@@ -229,7 +228,7 @@ private:
         *aMoveRfgToBottomLibrary, *aMoveRfgToHand, *aMoveRfgToGrave, *aViewHand, *aViewLibrary, *aViewTopCards,
         *aAlwaysRevealTopCard, *aAlwaysLookAtTopCard, *aOpenDeckInDeckEditor, *aMoveTopCardToGraveyard,
         *aMoveTopCardToExile, *aMoveTopCardsToGraveyard, *aMoveTopCardsToExile, *aMoveTopCardsUntil,
-        *aMoveTopCardToBottom, *aViewGraveyard, *aViewRfg, *aViewSideboard, *aDrawCard, *aDrawCards, *aDrawCryptCard, *aUndoDraw,
+        *aMoveTopCardToBottom, *aViewGraveyard, *aViewRfg, *aDrawCard, *aDrawCards, *aDrawCryptCard, *aDrawCryptCards, *aUndoDraw,
         *aMulligan, *aShuffle, *aMoveTopToPlay, *aMoveTopToPlayFaceDown, *aUntapAll, *aRollDie, *aCreateToken,
         *aCreateAnotherToken, *aCardMenu, *aMoveBottomToPlay, *aMoveBottomToPlayFaceDown, *aMoveBottomCardToTop,
         *aMoveBottomCardToGraveyard, *aMoveBottomCardToExile, *aMoveBottomCardsToGraveyard, *aMoveBottomCardsToExile,
@@ -248,6 +247,7 @@ private:
 
     bool shortcutsActive;
     int defaultNumberTopCards = 1;
+    int defaultNumberCryptCards = 4;
     int defaultNumberTopCardsToPlaceBelow = 1;
     int defaultNumberBottomCards = 1;
     int defaultNumberDieRoll = 20;

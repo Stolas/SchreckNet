@@ -104,7 +104,11 @@ void AbstractCardItem::paintPicture(QPainter *painter, const QSizeF &translatedS
 
     if (facedown || name.isEmpty()) {
         // never reveal card color, always paint the card back
-        PictureLoader::getCardBackPixmap(translatedPixmap, translatedSize.toSize());
+        bool isCrypt = false;
+        if (info) {
+            isCrypt = info.get()->getIsCrypt();
+        }
+        PictureLoader::getCardBackPixmap(translatedPixmap, translatedSize.toSize(), isCrypt);
     } else {
         // don't even spend time trying to load the picture if our size is too small
         if (translatedSize.width() > 10) {

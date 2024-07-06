@@ -40,10 +40,11 @@ void CardInfoPicture::updatePixmap()
 
 void CardInfoPicture::loadPixmap()
 {
-    if (info)
+    if (info) {
         PictureLoader::getPixmap(resizedPixmap, info, size());
-    else
-        PictureLoader::getCardBackPixmap(resizedPixmap, size());
+    } else {
+        PictureLoader::getCardBackPixmap(resizedPixmap, size(), false);
+    }
 }
 
 void CardInfoPicture::paintEvent(QPaintEvent *)
