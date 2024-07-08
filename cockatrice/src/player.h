@@ -203,6 +203,7 @@ private slots:
     void actCreateAllRelatedCards();
     void cardMenuAction();
     void actMoveCardXCardsFromTop();
+    void actInfluence();
     void actCardCounterTrigger();
     void actAttach();
     void actUnattach();
@@ -238,7 +239,7 @@ private:
     QAction *aPlay, *aPlayFacedown, *aHide, *aTap, *aDoesntUntap, *aAttach, *aUnattach, *aDrawArrow, *aSetBVS, *aResetBVS,
         *aIncB, *aDecB, *aIncV, *aDecV, *aIncS, *aDecS, *aIncBVS, *aDecBVS, *aFlowB, *aFlowV, *aFlowS, *aSetAnnotation, *aFlip, *aPeek, *aClone,
         *aMoveToTopLibrary, *aMoveToBottomLibrary, *aMoveToHand, *aMoveToGraveyard, *aMoveToExile,
-        *aMoveToXfromTopOfLibrary;
+        *aMoveToXfromTopOfLibrary, *aInfluence;
 
     bool movingCardsUntil;
     QTimer *moveTopCardTimer;

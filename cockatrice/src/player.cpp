@@ -491,6 +491,9 @@ Player::Player(const ServerInfo_User &info, int _id, bool _local, bool _judge, T
     connect(aMoveToGraveyard, SIGNAL(triggered()), this, SLOT(cardMenuAction()));
     connect(aMoveToExile, SIGNAL(triggered()), this, SLOT(cardMenuAction()));
 
+    aInfluence = new QAction(this);
+    connect(aInfluence, SIGNAL(triggered()), this, SLOT(actInfluence()));
+
     aPlay = new QAction(this);
     connect(aPlay, SIGNAL(triggered()), this, SLOT(actPlay()));
     aHide = new QAction(this);
@@ -796,6 +799,7 @@ void Player::retranslateUi()
         sayMenu->setTitle(tr("S&ay"));
     }
 
+    aInfluence->setText(tr("&Influence"));
     aPlay->setText(tr("&Play"));
     aHide->setText(tr("&Hide"));
     aPlayFacedown->setText(tr("Play &Face Down"));
@@ -859,6 +863,7 @@ void Player::setShortcutsActive()
     shortcutsActive = true;
     ShortcutsSettings &shortcuts = SettingsCache::instance().shortcuts();
 
+    aInfluence->setShortcuts(shortcuts.getShortcut("Player/aInflunce"));
     aPlay->setShortcuts(shortcuts.getShortcut("Player/aPlay"));
     aTap->setShortcuts(shortcuts.getShortcut("Player/aTap"));
     aDoesntUntap->setShortcuts(shortcuts.getShortcut("Player/aDoesntUntap"));
@@ -3102,6 +3107,31 @@ void Player::actUnattach()
     sendGameCommand(prepareGameCommand(commandList));
 }
 
+void Player::actInfluence()
+{
+    /* Todo; finish influence, add pay pool. */
+    QList<const ::google::protobuf::Message *> commandList;
+    for (const auto &item : scene()->selectedItems()) {
+        auto *card = static_cast<CardItem *>(item);
+        int counterId = 0; /* 0 = Red */
+        if (card->getCounters().value(counterId, 0) < MAX_COUNTERS_ON_CARD) {
+            auto *cmd = new Command_SetCardCounter;
+            cmd->set_zone(card->getZone()->getName().toStdString());
+            cmd->set_card_id(card->getId());
+            cmd->set_counter_id(counterId);
+            cmd->set_counter_value(card->getCounters().value(counterId, 0) + 1);
+            commandList.append(cmd);
+        }
+    }
+
+    // playerTarget->data.
+     // Todo; lose pool
+     // auto *cmd = new Command_;
+     // commandList.append(cmd);
+
+    sendGameCommand(prepareGameCommand(commandList));
+}
+
 void Player::actCardCounterTrigger()
 {
     auto *action = static_cast<QAction *>(sender());
@@ -3268,6 +3298,14 @@ void Player::updateCardMenu(const CardItem *card)
         if (card->getZone()) {
             if (card->getZone()->getName() == "table") {
                 // Card is on the battlefield
+                CardInfoPtr info = card->getInfo();
+
+                if (info) {
+                    /* Todo; check face down */
+                    if (info->getIsCrypt()) {
+                        cardMenu->addAction(aInfluence);
+                    }
+                }
 
                 cardMenu->addAction(aTap);
                 cardMenu->addAction(aDoesntUntap);
