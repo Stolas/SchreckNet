@@ -249,7 +249,7 @@ void MainWindow::actWatchReplay()
 {
     QFileDialog dlg(this, tr("Load replay"));
     dlg.setDirectory(SettingsCache::instance().getReplaysPath());
-    dlg.setNameFilters(QStringList() << QObject::tr("Cockatrice replays (*.cor)"));
+    dlg.setNameFilters(QStringList() << QObject::tr("SchreckNET replays (*.snr)"));
     if (!dlg.exec())
         return;
 
@@ -307,11 +307,21 @@ void MainWindow::actAbout()
         QMessageBox::NoIcon, tr("About SchreckNET"),
         QString("<font size=\"8\"><b>SchreckNET</b></font> (" + QString::fromStdString(BUILD_ARCHITECTURE) + ")<br>" +
                 tr("Version") + QString(" %1").arg(VERSION_STRING) + "<br><br><b><a href='" + GITHUB_PAGES_URL + "'>" +
-                tr("Cockatrice Webpage") + "</a></b><br>" + 
-                "<br><b>" + tr("SchreckNET is a Cockatrice Port, which is developed by these people:") +
-                "<br><b>" + tr("Project Manager:") +
+                tr("SchreckNET Webpage") + "</a></b><br>" + 
+                "<br>" + tr("SchreckNET is a Cockatrice Port, which is developed by these people:") +
+                "<br><br><b>" + tr("Project Manager:") +
                 "</b><br>Zach Halpern<br><br>" + "<b>" + tr("Past Project Managers:") +
-                "</b><br>Gavin Bisesi<br>Max-Wilhelm Bruker<br>Marcus Schütz<br><br>" + "<b>" + tr("Developers:") +
+                "</b><br>Gavin Bisesi<br>Max-Wilhelm Bruker<br>Marcus Schütz" + "<br><br><b>" +
+                tr("SchreckNET:") + "</b><br>"
+                "<b>Code:</b> Stolas<br>"+
+                "<b>Icons:</b> ChrisM<br>"+
+                "<br><br>"+ "<b>"+ tr("Based on the following intellectual property:") +
+                "</b><br>"
+                "<b>Vampire: The Eternal Struggle:</b> <a href='https://https://www.blackchantry.com/'>Black Chantry Productions</a><br>"+
+                "<b>The World of Darkness:</b> <a href='https://www.paradoxinteractive.com/games/world-of-darkness/about'>Paradox Interactive</a><br>"+
+                "<br><a href='https://www.paradoxinteractive.com/games/world-of-darkness/community/dark-pack-agreement/'>Released Thanks to the Dark Pact Agreement</a>"+
+                "<br><br>"+
+                "<b>" + tr("Developers:") +
                 "</b><br>" + "<a href='" + GITHUB_CONTRIBUTORS_URL + "'>" + tr("Our Developers") + "</a><br>" +
                 "<a href='" + GITHUB_CONTRIBUTE_URL + "'>" + tr("Help Develop!") + "</a><br><br>" + "<b>" +
                 tr("Translators:") + "</b><br>" + "<a href='" + GITHUB_TRANSIFEX_TRANSLATORS_URL + "'>" +
@@ -424,7 +434,7 @@ void MainWindow::loginError(Response::ResponseCode r,
             break;
         case Response::RespContextError:
             QMessageBox::critical(this, tr("Error"),
-                                  tr("An internal error has occurred, please close and reopen Cockatrice before trying "
+                                  tr("An internal error has occurred, please close and reopen SchreckNET before trying "
                                      "again.\nIf the error persists, ensure you are running the latest version of the "
                                      "software and if needed contact the software developers."));
             break;
@@ -669,7 +679,7 @@ void MainWindow::retranslateUi()
     aAddCustomSet->setText(tr("Add custom sets/cards"));
 
     helpMenu->setTitle(tr("&Help"));
-    aAbout->setText(tr("&About Cockatrice"));
+    aAbout->setText(tr("&About SchreckNET"));
     aTips->setText(tr("&Tip of the Day"));
     aUpdate->setText(tr("Check for Client Updates"));
     aCheckCardUpdates->setText(tr("Check for Card Updates..."));
@@ -907,12 +917,12 @@ void MainWindow::alertForcedOracleRun(const QString &version, bool isUpdate)
 {
     if (isUpdate) {
         QMessageBox::information(this, tr("New Version"),
-                                 tr("Congratulations on updating to Cockatrice %1!\n"
+                                 tr("Congratulations on updating to SchreckNET %1!\n"
                                     "Oracle will now launch to update your card database.")
                                      .arg(version));
     } else {
-        QMessageBox::information(this, tr("Cockatrice installed"),
-                                 tr("Congratulations on installing Cockatrice %1!\n"
+        QMessageBox::information(this, tr("SchreckNET installed"),
+                                 tr("Congratulations on installing SchreckNET %1!\n"
                                     "Oracle will now launch to install the initial card database.")
                                      .arg(version));
     }
@@ -1040,7 +1050,7 @@ void MainWindow::cardDatabaseLoadingFailed()
     QMessageBox msgBox;
     msgBox.setWindowTitle(tr("Card database"));
     msgBox.setIcon(QMessageBox::Question);
-    msgBox.setText(tr("Cockatrice is unable to load the card database.\n"
+    msgBox.setText(tr("SchreckNET is unable to load the card database.\n"
                       "Do you want to update your card database now?\n"
                       "If unsure or first time user, choose \"Yes\""));
 
@@ -1091,7 +1101,7 @@ void MainWindow::cardDatabaseAllNewSetsEnabled()
 {
     QMessageBox::information(
         this, tr("Welcome"),
-        tr("Hi! It seems like you're running this version of Cockatrice for the first time.\nAll the sets in the card "
+        tr("Hi! It seems like you're running this version of SchreckNET for the first time.\nAll the sets in the card "
            "database have been enabled.\nRead more about changing the set order or disabling specific sets and "
            "consequent effects in the \"Manage Sets\" dialog."));
     actManageSets();
@@ -1236,7 +1246,7 @@ void MainWindow::notifyUserAboutUpdate()
     QMessageBox::information(
         this, tr("Information"),
         tr("This server supports additional features that your client doesn't have.\nThis is most likely not a "
-           "problem, but this message might mean there is a new version of Cockatrice available or this server is "
+           "problem, but this message might mean there is a new version of SchreckNET available or this server is "
            "running a custom or pre-release version.\n\nTo update your client, go to Help -> Check for Updates."));
 }
 
@@ -1298,7 +1308,7 @@ void MainWindow::actAddCustomSet()
     if (res) {
         QMessageBox::information(
             this, tr("Load sets/cards"),
-            tr("The new sets/cards have been added successfully.\nCockatrice will now reload the card database."));
+            tr("The new sets/cards have been added successfully.\nSchreckNET will now reload the card database."));
         const auto reloadOk1 = QtConcurrent::run([] { db->loadCardDatabases(); });
     } else {
         QMessageBox::warning(this, tr("Load sets/cards"), tr("Sets/cards failed to import."));

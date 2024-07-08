@@ -67,7 +67,7 @@ DlgConnect::DlgConnect(QWidget *parent) : QDialog(parent)
     savePasswordCheckBox = new QCheckBox(tr("&Save password"));
 
     autoConnectCheckBox = new QCheckBox(tr("A&uto connect"));
-    autoConnectCheckBox->setToolTip(tr("Automatically connect to the most recent login when Cockatrice opens"));
+    autoConnectCheckBox->setToolTip(tr("Automatically connect to the most recent login when SchreckNET opens"));
 
     auto &servers = SettingsCache::instance().servers();
     if (servers.getSavePassword()) {

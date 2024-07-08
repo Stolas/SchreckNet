@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
     // These values are only used by the settings loader/saver
     // Wrong or outdated values are kept to not break things
     QCoreApplication::setOrganizationName("SchreckNET");
-    QCoreApplication::setOrganizationDomain("cockatrice.de");
+    QCoreApplication::setOrganizationDomain("bloodhunt.net");
     QCoreApplication::setApplicationName("SchreckNET");
     QCoreApplication::setApplicationVersion(VERSION_STRING);
 

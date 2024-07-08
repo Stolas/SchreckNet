@@ -4,7 +4,7 @@
 #include "settingsmanager.h"
 
 #include <QObject>
-#define SERVERSETTINGS_DEFAULT_HOST "server.cockatrice.us"
+#define SERVERSETTINGS_DEFAULT_HOST "server.bloodhunt.net"
 #define SERVERSETTINGS_DEFAULT_PORT "4748"
 
 class ServersSettings : public SettingsManager

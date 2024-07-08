@@ -30,10 +30,14 @@ QStringList DownloadSettings::getAllURLs()
 void DownloadSettings::populateDefaultURLs()
 {
     downloadURLs.clear();
-    downloadURLs.append("https://api.scryfall.com/cards/!set:uuid!?format=image&face=!prop:side!");
-    downloadURLs.append("https://api.scryfall.com/cards/multiverse/!set:muid!?format=image");
-    downloadURLs.append("https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=!set:muid!&type=card");
-    downloadURLs.append("https://gatherer.wizards.com/Handlers/Image.ashx?name=!name!&type=card");
+    downloadURLs.append("http://https://static.krcg.org/card/!name!.jpg");
+    downloadURLs.append("http://https://static.krcg.org/card/es/!name!.jpg");
+    downloadURLs.append("http://https://static.krcg.org/card/fr/!name!.jpg");
+    downloadURLs.append("http://https://static.krcg.org/card/pt/!name!.jpg");
+    // downloadURLs.append("https://api.scryfall.com/cards/!set:uuid!?format=image&face=!prop:side!");
+    // downloadURLs.append("https://api.scryfall.com/cards/multiverse/!set:muid!?format=image");
+    // downloadURLs.append("https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=!set:muid!&type=card");
+    // downloadURLs.append("https://gatherer.wizards.com/Handlers/Image.ashx?name=!name!&type=card");
     setValue(QVariant::fromValue(downloadURLs), "urls", "downloads");
 }
 

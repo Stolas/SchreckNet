@@ -61,7 +61,7 @@ DlgUpdate::DlgUpdate(QWidget *parent) : QDialog(parent)
     if (!QSslSocket::supportsSsl()) {
         enableUpdateButton(false);
         QMessageBox::critical(this, tr("Error"),
-                              tr("Cockatrice was not built with SSL support, therefore you cannot download updates "
+                              tr("SchreckNET was not built with SSL support, therefore you cannot download updates "
                                  "automatically! \nPlease visit the download page to update manually."));
     }
 
@@ -136,7 +136,7 @@ void DlgUpdate::finishedUpdateCheck(bool needToUpdate, bool isCompatible, Releas
         // downloader themselves if there's a compatible build
         QMessageBox::information(
             this, tr("No Update Available"),
-            tr("Cockatrice is up to date!") + "<br><br>" +
+            tr("SchreckNET is up to date!") + "<br><br>" +
                 tr("You are already running the latest version available in the chosen release channel.") + "<br>" +
                 "<b>" + tr("Current version") + QString(":</b> %1<br>").arg(VERSION_STRING) + "<b>" +
                 tr("Selected release channel") +
@@ -149,7 +149,7 @@ void DlgUpdate::finishedUpdateCheck(bool needToUpdate, bool isCompatible, Releas
         int reply;
         reply = QMessageBox::question(
             this, tr("Update Available"),
-            tr("A new version of Cockatrice is available!") + "<br><br>" + "<b>" + tr("New version") +
+            tr("A new version of SchreckNET is available!") + "<br><br>" + "<b>" + tr("New version") +
                 QString(":</b> %1<br>").arg(release->getName()) + "<b>" + tr("Released") +
                 QString(":</b> %1 (<a href=\"%2\">").arg(publishDate, release->getDescriptionUrl()) + tr("Changelog") +
                 "</a>)<br><br>" + tr("Do you want to update now?"),
@@ -160,7 +160,7 @@ void DlgUpdate::finishedUpdateCheck(bool needToUpdate, bool isCompatible, Releas
     } else {
         QMessageBox::information(
             this, tr("Update Available"),
-            tr("A new version of Cockatrice is available!") + "<br><br>" + "<b>" + tr("New version") +
+            tr("A new version of SchreckNET is available!") + "<br><br>" + "<b>" + tr("New version") +
                 QString(":</b> %1<br>").arg(release->getName()) + "<b>" + tr("Released") +
                 QString(":</b> %1 (<a href=\"%2\">").arg(publishDate, release->getDescriptionUrl()) + tr("Changelog") +
                 "</a>)<br><br>" +
@@ -220,13 +220,13 @@ void DlgUpdate::downloadSuccessful(const QUrl &filepath)
     // Try to open the installer. If it opens, quit Cockatrice
     if (QDesktopServices::openUrl(filepath)) {
         QMetaObject::invokeMethod(static_cast<MainWindow *>(parent()), "close", Qt::QueuedConnection);
-        qDebug() << "Opened downloaded update file successfully - closing Cockatrice";
+        qDebug() << "Opened downloaded update file successfully - closing SchreckNET";
         close();
     } else {
         setLabel(tr("Error"));
         QMessageBox::critical(this, tr("Update Error"),
-                              tr("Cockatrice is unable to open the installer.") + "<br><br>" +
-                                  tr("Try to update manually by closing Cockatrice and running the installer.") +
+                              tr("SchreckNET is unable to open the installer.") + "<br><br>" +
+                                  tr("Try to update manually by closing SchreckNET and running the installer.") +
                                   "<br>" + tr("Download location") + QString(": %1").arg(filepath.toLocalFile()));
     }
 }

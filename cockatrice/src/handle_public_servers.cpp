@@ -8,7 +8,7 @@
 #include <QNetworkReply>
 #include <QUrl>
 
-#define PUBLIC_SERVERS_JSON "https://cockatrice.github.io/public-servers.json"
+#define PUBLIC_SERVERS_JSON "https://raw.githubusercontent.com/Stolas/SchreckNet-WMRH-CardDB/master/public-servers.json"
 
 HandlePublicServers::HandlePublicServers(QObject *parent)
     : QObject(parent), nam(new QNetworkAccessManager(this)), reply(nullptr)
