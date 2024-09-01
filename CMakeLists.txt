@@ -17,11 +17,9 @@ option(UPDATE_TRANSLATIONS "Update translations on compile" OFF)
 # Compile servatrice
 option(WITH_SERVER "build servatrice" OFF)
 # Compile cockatrice
-option(WITH_CLIENT "build cockatrice" ON)
+option(WITH_CLIENT "build SchreckNET" ON)
 # Compile oracle
 option(WITH_ORACLE "build oracle" ON)
-# Compile dbconverter
-option(WITH_DBCONVERTER "build dbconverter" ON)
 # Compile tests
 option(TEST "build tests" OFF)
 
@@ -331,11 +329,6 @@ endif()
 if(WITH_ORACLE)
   add_subdirectory(oracle)
   set(CPACK_INSTALL_CMAKE_PROJECTS "Oracle;Oracle;ALL;/" ${CPACK_INSTALL_CMAKE_PROJECTS})
-endif()
-
-if(WITH_DBCONVERTER)
-  add_subdirectory(dbconverter)
-  set(CPACK_INSTALL_CMAKE_PROJECTS "Dbconverter;Dbconverter;ALL;/" ${CPACK_INSTALL_CMAKE_PROJECTS})
 endif()
 
 if(TEST)
