@@ -117,7 +117,6 @@ void GameScene::rearrange()
         for (int j = 0; j < rowsInColumn; ++j) {
             Player *player = playersPlayingIter.next();
             auto playerName = player->getName();
-            qDebug() << QString(">> Player: %1 Col: %2 Row: %3").arg(playerName).arg(col).arg(j);
             if (col == 0) {
                 playersByColumn[col].prepend(player);
             } else {
