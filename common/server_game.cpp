@@ -373,7 +373,7 @@ void Server_Game::doStartGameIfReady()
         newSeating[seat] = players[playerId];
         // newSeating[seat].playuer
     }
-    players.swap(newSeating);
+    players.swap(newSeating); /* Todo; there is an off by one error in the IDs. */
 
     /* Todo; here all the seats should be assigned. */
     qDebug() << seating;
