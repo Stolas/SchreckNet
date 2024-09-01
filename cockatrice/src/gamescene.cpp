@@ -15,6 +15,8 @@
 #include <QSet>
 #include <QtMath>
 
+#include <algorithm>
+
 GameScene::GameScene(PhasesToolbar *_phasesToolbar, QObject *parent)
     : QGraphicsScene(parent), phasesToolbar(_phasesToolbar), viewSize(QSize()), playerRotation(0)
 {
@@ -84,6 +86,10 @@ void GameScene::rearrange()
             }
         }
     }
+
+    /* Todo; not sure this works with spectators / judges, but we reorder. */
+    std::sort(playersPlaying.begin(), playersPlaying.end(),
+              [](Player* a, Player* b) { return a->getId() < b->getId(); });
 
     // Rotate the players playing list so that first player is first, then
     // adjust by the additional rotation setting.
