@@ -1,22 +1,32 @@
-Fix Cmake:
-    * "-Zc:__cplusplus -permissive-"
-    * Auto-qtdeploybins (windeployqt.exe)
+Roadmap
+=============
 
-Fix Importer to use Schrecknets
-Fix Draw Crypt Card
-VTES Specific Game Commands:
-    * Influence Crypt Card
+# Alpha 0.2
+    * Draw Crypt Card, put in a good location.
+    * Randomize Seating is off-by-one (swap).
+    * Show the order of play areas in the correct way.
+    * Fix 'Pick Seat' button.
+    * Validate all Judge actions.
 
-Reorder the seating display.
-Resize cards?
+# Beta 0.5
+    * Finish Randomize Seating
+    * Pause and resume clock
+    * Cryptcard back go back to green.
+    * Deck editor filters.
 
-Deck Editor:
-    * Instead of empty block which IDK why is there add a maincardtype
-
-Game Type:
-    * Random Table Seating on Start.
-    * Tournament Sitting at Start. (All dice roll, show four random crypt cards, pick location)
-
-Later:
-    * Add support for Malkav Games.
+# Release 1.0
     * Add support for 'joining after dropping'.
+    * Auto-qtdeploybins (windeployqt.exe) to CMake
+    * Make the Deck Editor show the card types.
+    * Default order of sets should make sense.
+    * Show error when banned card is in deck.
+    * Move Menus around.
+
+# Future 1.5
+    * Make card ruling directly visible in SchreckNET.
+    * Make deskhash in game_tab only visible for Judges (or local game).
+    * Add support for the Malkav Games.
+    * Make deckformat compatible with Lackey
+    * Discord integration.
+
+
