@@ -150,9 +150,7 @@ void DeckView::mouseDoubleClickEvent(QMouseEvent *event)
             result.append(m);
         }
 
-        deckViewScene->applySideboardPlan(result);
         deckViewScene->rearrangeItems();
-        emit deckViewScene->sideboardPlanChanged();
     }
 }
 
@@ -326,7 +324,6 @@ void DeckViewScene::setDeck(const DeckList &_deck)
 
     deck = new DeckList(_deck);
     rebuildTree();
-    applySideboardPlan(deck->getCurrentSideboardPlan());
     rearrangeItems();
 }
 
@@ -359,31 +356,6 @@ void DeckViewScene::rebuildTree()
                 emit newCardAdded(newCard);
             }
         }
-    }
-}
-
-void DeckViewScene::applySideboardPlan(const QList<MoveCard_ToZone> &plan)
-{
-    for (int i = 0; i < plan.size(); ++i) {
-        const MoveCard_ToZone &m = plan[i];
-        DeckViewCardContainer *start = cardContainers.value(QString::fromStdString(m.start_zone()));
-        DeckViewCardContainer *target = cardContainers.value(QString::fromStdString(m.target_zone()));
-        if (!start || !target)
-            continue;
-
-        DeckViewCard *card = 0;
-        const QList<DeckViewCard *> &cardList = start->getCards();
-        for (int j = 0; j < cardList.size(); ++j)
-            if (cardList[j]->getName() == QString::fromStdString(m.card_name())) {
-                card = cardList[j];
-                break;
-            }
-        if (!card)
-            continue;
-
-        start->removeCard(card);
-        target->addCard(card);
-        card->setParentItem(target);
     }
 }
 
@@ -455,32 +427,6 @@ void DeckViewScene::rearrangeItems()
 void DeckViewScene::updateContents()
 {
     rearrangeItems();
-    emit sideboardPlanChanged();
-}
-
-QList<MoveCard_ToZone> DeckViewScene::getSideboardPlan() const
-{
-    QList<MoveCard_ToZone> result;
-    QMapIterator<QString, DeckViewCardContainer *> containerIterator(cardContainers);
-    while (containerIterator.hasNext()) {
-        DeckViewCardContainer *cont = containerIterator.next().value();
-        const QList<DeckViewCard *> cardList = cont->getCards();
-        for (int i = 0; i < cardList.size(); ++i)
-            if (cardList[i]->getOriginZone() != cont->getName()) {
-                MoveCard_ToZone m;
-                m.set_card_name(cardList[i]->getName().toStdString());
-                m.set_start_zone(cardList[i]->getOriginZone().toStdString());
-                m.set_target_zone(cont->getName().toStdString());
-                result.append(m);
-            }
-    }
-    return result;
-}
-
-void DeckViewScene::resetSideboardPlan()
-{
-    rebuildTree();
-    rearrangeItems();
 }
 
 DeckView::DeckView(QWidget *parent) : QGraphicsView(parent)
@@ -494,7 +440,6 @@ DeckView::DeckView(QWidget *parent) : QGraphicsView(parent)
 
     connect(deckViewScene, SIGNAL(sceneRectChanged(const QRectF &)), this, SLOT(updateSceneRect(const QRectF &)));
     connect(deckViewScene, SIGNAL(newCardAdded(AbstractCardItem *)), this, SIGNAL(newCardAdded(AbstractCardItem *)));
-    connect(deckViewScene, SIGNAL(sideboardPlanChanged()), this, SIGNAL(sideboardPlanChanged()));
 }
 
 void DeckView::resizeEvent(QResizeEvent *event)
@@ -514,7 +459,3 @@ void DeckView::setDeck(const DeckList &_deck)
     deckViewScene->setDeck(_deck);
 }
 
-void DeckView::resetSideboardPlan()
-{
-    deckViewScene->resetSideboardPlan();
-}

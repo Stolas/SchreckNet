@@ -31,7 +31,6 @@ private:
     const QString &exileConstant() const;
     const QString &handConstant() const;
     const QString &deckConstant() const;
-    const QString &sideboardConstant() const;
     const QString &stackConstant() const;
 
     QString sanitizeHtml(QString dirty) const;
@@ -87,7 +86,6 @@ public slots:
     void logSetCardCounter(Player *player, QString cardName, int counterId, int value, int oldValue);
     void logSetCounter(Player *player, QString counterName, int value, int oldValue);
     void logSetDoesntUntap(Player *player, CardItem *card, bool doesntUntap);
-    void logSetSideboardLock(Player *player, bool locked);
     void logSetTapped(Player *player, CardItem *card, bool tapped);
     void logShuffle(Player *player, CardZone *zone, int start, int end);
     void

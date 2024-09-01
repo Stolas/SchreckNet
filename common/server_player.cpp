@@ -32,8 +32,6 @@
 #include "pb/command_set_card_attr.pb.h"
 #include "pb/command_set_card_counter.pb.h"
 #include "pb/command_set_counter.pb.h"
-#include "pb/command_set_sideboard_lock.pb.h"
-#include "pb/command_set_sideboard_plan.pb.h"
 #include "pb/command_shuffle.pb.h"
 #include "pb/command_undo_draw.pb.h"
 #include "pb/context_concede.pb.h"
@@ -42,7 +40,6 @@
 #include "pb/context_move_card.pb.h"
 #include "pb/context_mulligan.pb.h"
 #include "pb/context_ready_start.pb.h"
-#include "pb/context_set_sideboard_lock.pb.h"
 #include "pb/context_undo_draw.pb.h"
 #include "pb/event_attach_card.pb.h"
 #include "pb/event_change_zone_properties.pb.h"
@@ -112,9 +109,8 @@ Server_Player::Server_Player(Server_Game *_game,
                              bool _judge,
                              Server_AbstractUserInterface *_userInterface)
     : ServerInfo_User_Container(_userInfo), game(_game), userInterface(_userInterface), deck(nullptr), pingTime(0),
-      playerId(_playerId), spectator(_spectator), judge(_judge), nextCardId(0), readyStart(false), conceded(false),
-      sideboardLocked(true)
-{
+      playerId(_playerId), spectator(_spectator), judge(_judge), nextCardId(0), readyStart(false), conceded(false)
+      {
 }
 
 Server_Player::~Server_Player() = default;
@@ -217,36 +213,6 @@ void Server_Player::setupZones()
         }
     }
 
-    // const QList<MoveCard_ToZone> &sideboardPlan = deck->getCurrentSideboardPlan();
-    // for (const auto &m : sideboardPlan) {
-    //     const QString startZone = nameFromStdString(m.start_zone());
-    //     const QString targetZone = nameFromStdString(m.target_zone());
-
-    //     Server_CardZone *start, *target;
-    //     if (startZone == DECK_ZONE_MAIN) {
-    //         start = deckZone;
-    //     } else if (startZone == DECK_ZONE_CRYPT) {
-    //         start = cryptZone;
-    //     } else {
-    //         continue;
-    //     }
-    //     if (targetZone == DECK_ZONE_MAIN) {
-    //         target = deckZone;
-    //     } else if (targetZone == DECK_ZONE_CRYPT) {
-    //         target = cryptZone;
-    //     } else {
-    //         continue;
-    //     }
-
-    //     for (int j = 0; j < start->getCards().size(); ++j) {
-    //         if (start->getCards()[j]->getName() == nameFromStdString(m.card_name())) {
-    //             Server_Card *card = start->getCard(j, nullptr, true);
-    //             target->insertCard(card, -1, 0);
-    //             break;
-    //         }
-    //     }
-    // }
-
     cryptZone->shuffle();
     deckZone->shuffle();
 }
@@ -280,7 +246,6 @@ void Server_Player::getProperties(ServerInfo_PlayerProperties &result, bool with
     result.set_spectator(spectator);
     if (!spectator) {
         result.set_conceded(conceded);
-        result.set_sideboard_locked(sideboardLocked);
         result.set_ready_start(readyStart);
     }
     result.set_judge(judge);
@@ -353,21 +318,33 @@ Response::ResponseCode Server_Player::drawCards(GameEventStorage &ges, int numbe
 Response::ResponseCode Server_Player::drawCryptCards(GameEventStorage &ges, int number)
 {
     Server_CardZone *cryptZone = zones.value("crypt");
+    Server_CardZone *tableZone = zones.value("table");
     if (cryptZone->getCards().size() < number) {
         number = cryptZone->getCards().size();
     }
 
-    Server_Card *card = cryptZone->getCard(0, nullptr, true);
-    if (!card) {
-        return Response::RespNothing;
+    Event_DrawCryptCards eventOthers;
+    eventOthers.set_number(number);
+    Event_DrawCryptCards eventPrivate(eventOthers);
+
+    for (int i = 0; i < number; ++i) {
+        Server_Card *card = cryptZone->getCard(0, nullptr, true);
+        tableZone->insertCard(card, -1, 0);
+        lastDrawList.append(card->getId());
+
+        ServerInfo_Card *cardInfo = eventPrivate.add_cards();
+        cardInfo->set_id(card->getId());
+        cardInfo->set_name(card->getName().toStdString());
     }
-    qDebug() << card->getName();
-    Server_CardZone *targetZone = getZones().value("table");
-    if (!targetZone) {
-        return Response::RespNameNotFound;
+
+    ges.enqueueGameEvent(eventPrivate, playerId, GameEventStorageItem::SendToPrivate, playerId);
+    ges.enqueueGameEvent(eventOthers, playerId, GameEventStorageItem::SendToOthers);
+
+    if (number > 0) {
+        revealTopCardIfNeeded(cryptZone, ges);
+        int currentKnownCards = cryptZone->getCardsBeingLookedAt();
+        cryptZone->setCardsBeingLookedAt(currentKnownCards - number);
     }
-    targetZone->insertCard(card, 100, 200);
-    //targetZone->moveCardInRow(ges, card, 0, 0);
 
     return Response::RespOk;
 }
@@ -788,16 +765,13 @@ Server_Player::cmdDeckSelect(const Command_DeckSelect &cmd, ResponseContainer &r
 
     delete deck;
     deck = newDeck;
-    sideboardLocked = true;
 
     Event_PlayerPropertiesChanged event;
-    event.mutable_player_properties()->set_sideboard_locked(true);
     event.mutable_player_properties()->set_deck_hash(deck->getDeckHash().toStdString());
     ges.enqueueGameEvent(event, playerId);
 
     Context_DeckSelect context;
     context.set_deck_hash(deck->getDeckHash().toStdString());
-    context.set_sideboard_size(deck->getSideboardSize());
     ges.setGameEventContext(context);
 
     auto *re = new Response_DeckDownload;
@@ -807,64 +781,7 @@ Server_Player::cmdDeckSelect(const Command_DeckSelect &cmd, ResponseContainer &r
     return Response::RespOk;
 }
 
-Response::ResponseCode Server_Player::cmdSetSideboardPlan(const Command_SetSideboardPlan &cmd,
-                                                          ResponseContainer & /*rc*/,
-                                                          GameEventStorage & /*ges*/)
-{
-    if (spectator) {
-        return Response::RespFunctionNotAllowed;
-    }
-    if (readyStart) {
-        return Response::RespContextError;
-    }
-    if (!deck) {
-        return Response::RespContextError;
-    }
-    if (sideboardLocked) {
-        return Response::RespContextError;
-    }
-
-    QList<MoveCard_ToZone> sideboardPlan;
-    for (int i = 0; i < cmd.move_list_size(); ++i) {
-        sideboardPlan.append(cmd.move_list(i));
-    }
-    deck->setCurrentSideboardPlan(sideboardPlan);
-
-    return Response::RespOk;
-}
-
-Response::ResponseCode Server_Player::cmdSetSideboardLock(const Command_SetSideboardLock &cmd,
-                                                          ResponseContainer & /*rc*/,
-                                                          GameEventStorage &ges)
-{
-    if (spectator) {
-        return Response::RespFunctionNotAllowed;
-    }
-    if (readyStart) {
-        return Response::RespContextError;
-    }
-    if (!deck) {
-        return Response::RespContextError;
-    }
-    if (sideboardLocked == cmd.locked()) {
-        return Response::RespContextError;
-    }
-
-    sideboardLocked = cmd.locked();
-    if (sideboardLocked) {
-        deck->setCurrentSideboardPlan(QList<MoveCard_ToZone>());
-    }
-
-    Event_PlayerPropertiesChanged event;
-    event.mutable_player_properties()->set_sideboard_locked(sideboardLocked);
-    ges.enqueueGameEvent(event, playerId);
-    ges.setGameEventContext(Context_SetSideboardLock());
-
-    return Response::RespOk;
-}
-
-Response::ResponseCode
-Server_Player::cmdConcede(const Command_Concede & /*cmd*/, ResponseContainer & /*rc*/, GameEventStorage &ges)
+Response::ResponseCode Server_Player::cmdConcede(const Command_Concede & /*cmd*/, ResponseContainer & /*rc*/, GameEventStorage &ges)
 {
     if (spectator) {
         return Response::RespFunctionNotAllowed;
@@ -2156,9 +2073,6 @@ Server_Player::processGameCommand(const GameCommand &command, ResponseContainer 
         case GameCommand::SHUFFLE:
             return cmdShuffle(command.GetExtension(Command_Shuffle::ext), rc, ges);
             break;
-        // case GameCommand::MULLIGAN:
-        //     return cmdMulligan(command.GetExtension(Command_Mulligan::ext), rc, ges);
-        //     break;
         case GameCommand::ROLL_DIE:
             return cmdRollDie(command.GetExtension(Command_RollDie::ext), rc, ges);
             break;
@@ -2225,14 +2139,8 @@ Server_Player::processGameCommand(const GameCommand &command, ResponseContainer 
         case GameCommand::MOVE_CARD:
             return cmdMoveCard(command.GetExtension(Command_MoveCard::ext), rc, ges);
             break;
-        case GameCommand::SET_SIDEBOARD_PLAN:
-            return cmdSetSideboardPlan(command.GetExtension(Command_SetSideboardPlan::ext), rc, ges);
-            break;
         case GameCommand::DECK_SELECT:
             return cmdDeckSelect(command.GetExtension(Command_DeckSelect::ext), rc, ges);
-            break;
-        case GameCommand::SET_SIDEBOARD_LOCK:
-            return cmdSetSideboardLock(command.GetExtension(Command_SetSideboardLock::ext), rc, ges);
             break;
         case GameCommand::CHANGE_ZONE_PROPERTIES:
             return cmdChangeZoneProperties(command.GetExtension(Command_ChangeZoneProperties::ext), rc, ges);
@@ -2246,7 +2154,7 @@ Server_Player::processGameCommand(const GameCommand &command, ResponseContainer 
         case GameCommand::REVERSE_TURN:
             return cmdReverseTurn(command.GetExtension(Command_ReverseTurn::ext), rc, ges);
             break;
-        case 1035: //GameCommand::DRAW_CRYPT_CARDS :
+        case GameCommand::DRAW_CRYPT_CARDS:
             return cmdDrawCryptCards(command.GetExtension(Command_DrawCryptCards::ext), rc, ges);
             break;
         default:

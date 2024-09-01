@@ -157,8 +157,6 @@ void PlayerListWidget::updatePlayerProperties(const ServerInfo_PlayerProperties 
         if (prop.has_deck_hash()) {
             player->setText(5, QString::fromStdString(prop.deck_hash()));
         }
-        if (prop.has_sideboard_locked())
-            player->setIcon(5, prop.sideboard_locked() ? lockIcon : QIcon());
     }
     if (prop.has_ping_seconds())
         player->setIcon(0, QIcon(PingPixmapGenerator::generatePixmap(12, prop.ping_seconds(), 10)));

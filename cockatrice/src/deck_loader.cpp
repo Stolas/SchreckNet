@@ -130,7 +130,6 @@ struct FormatDeckListForExport
             return;
         }
 
-        // Check if it's a sideboard card.
         if (node->getName() == DECK_ZONE_CRYPT) {
             // Get the number of cards and add the card name
             cryptBoardCards += QString::number(card->getNumber());

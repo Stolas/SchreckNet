@@ -227,8 +227,6 @@ Response::ResponseCode Server_ProtocolHandler::processGameCommandContainer(const
         << GameCommand::SET_CARD_ATTR
         // increment / decrement counter (example: -10 life points one by one)
         << GameCommand::INC_COUNTER
-        // // mulling lots of hands in a row
-        // << GameCommand::MULLIGAN
         // allows a user to sideboard without receiving flooding message
         << GameCommand::MOVE_CARD;
 

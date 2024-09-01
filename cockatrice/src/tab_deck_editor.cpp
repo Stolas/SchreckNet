@@ -451,8 +451,7 @@ void TabDeckEditor::databaseCustomMenu(QPoint point)
     QMenu menu;
     const CardInfoPtr info = currentCardInfo();
 
-    // add to deck and sideboard options
-    QAction *addToDeck, *addToSideboard;
+    QAction *addToDeck;
     addToDeck = menu.addAction(tr("Add to Deck"));
     connect(addToDeck, SIGNAL(triggered()), this, SLOT(actAddCard()));
 

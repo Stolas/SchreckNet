@@ -20,7 +20,7 @@ const QString &MessageLogWidget::tableConstant() const
 
 const QString &MessageLogWidget::graveyardConstant() const
 {
-    static const QString constant("grave");
+    static const QString constant("ash heap");
     return constant;
 }
 
@@ -39,12 +39,6 @@ const QString &MessageLogWidget::handConstant() const
 const QString &MessageLogWidget::deckConstant() const
 {
     static const QString constant("deck");
-    return constant;
-}
-
-const QString &MessageLogWidget::sideboardConstant() const
-{
-    static const QString constant("sb");
     return constant;
 }
 
@@ -117,8 +111,6 @@ MessageLogWidget::getFromStr(CardZone *zone, QString cardName, int position, boo
                 fromStr = tr(" from their library");
             }
         }
-    } else if (zoneName == sideboardConstant()) {
-        fromStr = tr(" from sideboard");
     } else if (zoneName == stackConstant()) {
         fromStr = tr(" from the stack");
     }
@@ -258,14 +250,7 @@ void MessageLogWidget::logCreateToken(Player *player, QString cardName)
 
 void MessageLogWidget::logDeckSelect(Player *player, QString deckHash, int sideboardSize)
 {
-    if (sideboardSize < 0) {
-        appendHtmlServerMessage(tr("%1 has loaded a deck (%2).").arg(sanitizeHtml(player->getName())).arg(deckHash));
-    } else {
-        appendHtmlServerMessage(tr("%1 has loaded a deck with %2 sideboard cards (%3).")
-                                    .arg(sanitizeHtml(player->getName()))
-                                    .arg("<font class=\"blue\">" + QString::number(sideboardSize) + "</font>")
-                                    .arg(deckHash));
-    }
+    appendHtmlServerMessage(tr("%1 has loaded a deck (%2).").arg(sanitizeHtml(player->getName())).arg(deckHash));
 }
 
 void MessageLogWidget::logDestroyCard(Player *player, QString cardName)
@@ -346,8 +331,6 @@ void MessageLogWidget::logMoveCard(Player *player,
             usesNewX = true;
             finalStr = tr("%1 puts %2%3 into their library %4 cards from the top.");
         }
-    } else if (targetZoneName == sideboardConstant()) {
-        finalStr = tr("%1 moves %2%3 to sideboard.");
     } else if (targetZoneName == stackConstant()) {
         soundEngine->playSound("play_card");
         finalStr = tr("%1 plays %2%3.");
@@ -659,15 +642,6 @@ void MessageLogWidget::logSetDoesntUntap(Player *player, CardItem *card, bool do
         str = tr("%1 sets %2 to untap normally.");
     }
     appendHtmlServerMessage(str.arg(sanitizeHtml(player->getName())).arg(cardLink(card->getName())));
-}
-
-void MessageLogWidget::logSetSideboardLock(Player *player, bool locked)
-{
-    if (locked) {
-        appendHtmlServerMessage(tr("%1 has locked their sideboard.").arg(sanitizeHtml(player->getName())));
-    } else {
-        appendHtmlServerMessage(tr("%1 has unlocked their sideboard.").arg(sanitizeHtml(player->getName())));
-    }
 }
 
 void MessageLogWidget::logSetTapped(Player *player, CardItem *card, bool tapped)

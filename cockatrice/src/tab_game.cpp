@@ -25,8 +25,6 @@
 #include "pb/command_ready_start.pb.h"
 #include "pb/command_reverse_turn.pb.h"
 #include "pb/command_set_active_phase.pb.h"
-#include "pb/command_set_sideboard_lock.pb.h"
-#include "pb/command_set_sideboard_plan.pb.h"
 #include "pb/context_connection_state_changed.pb.h"
 #include "pb/context_deck_select.pb.h"
 #include "pb/context_ping_changed.pb.h"
@@ -105,13 +103,9 @@ DeckViewContainer::DeckViewContainer(int _playerId, TabGame *parent)
     loadRemoteButton = new QPushButton;
     readyStartButton = new ToggleButton;
     readyStartButton->setEnabled(false);
-    sideboardLockButton = new ToggleButton;
-    sideboardLockButton->setEnabled(false);
 
     connect(loadLocalButton, SIGNAL(clicked()), this, SLOT(loadLocalDeck()));
     connect(readyStartButton, SIGNAL(clicked()), this, SLOT(readyStart()));
-    connect(sideboardLockButton, SIGNAL(clicked()), this, SLOT(sideboardLockButtonClicked()));
-    connect(sideboardLockButton, SIGNAL(stateChanged()), this, SLOT(updateSideboardLockButtonText()));
 
     if (parentGame->getIsLocalGame()) {
         loadRemoteButton->setEnabled(false);
@@ -123,12 +117,10 @@ DeckViewContainer::DeckViewContainer(int _playerId, TabGame *parent)
     buttonHBox->addWidget(loadLocalButton);
     buttonHBox->addWidget(loadRemoteButton);
     buttonHBox->addWidget(readyStartButton);
-    buttonHBox->addWidget(sideboardLockButton);
     buttonHBox->setContentsMargins(0, 0, 0, 0);
     buttonHBox->addStretch();
     deckView = new DeckView;
     connect(deckView, SIGNAL(newCardAdded(AbstractCardItem *)), this, SIGNAL(newCardAdded(AbstractCardItem *)));
-    connect(deckView, SIGNAL(sideboardPlanChanged()), this, SLOT(sideboardPlanChanged()));
 
     auto *deckViewLayout = new QVBoxLayout;
     deckViewLayout->addLayout(buttonHBox);
@@ -146,7 +138,6 @@ void DeckViewContainer::retranslateUi()
     loadLocalButton->setText(tr("Load deck..."));
     loadRemoteButton->setText(tr("Load remote deck..."));
     readyStartButton->setText(tr("Ready to start"));
-    updateSideboardLockButtonText();
 }
 
 void DeckViewContainer::setButtonsVisible(bool _visible)
@@ -154,19 +145,6 @@ void DeckViewContainer::setButtonsVisible(bool _visible)
     loadLocalButton->setVisible(_visible);
     loadRemoteButton->setVisible(_visible);
     readyStartButton->setVisible(_visible);
-    sideboardLockButton->setVisible(_visible);
-}
-
-void DeckViewContainer::updateSideboardLockButtonText()
-{
-    if (sideboardLockButton->getState()) {
-        sideboardLockButton->setText(tr("Sideboard unlocked"));
-    } else {
-        sideboardLockButton->setText(tr("Sideboard locked"));
-    }
-    // setting text on a button removes its shortcut
-    ShortcutsSettings &shortcuts = SettingsCache::instance().shortcuts();
-    sideboardLockButton->setShortcut(shortcuts.getSingleShortcut("DeckViewContainer/sideboardLockButton"));
 }
 
 void DeckViewContainer::refreshShortcuts()
@@ -175,7 +153,6 @@ void DeckViewContainer::refreshShortcuts()
     loadLocalButton->setShortcut(shortcuts.getSingleShortcut("DeckViewContainer/loadLocalButton"));
     loadRemoteButton->setShortcut(shortcuts.getSingleShortcut("DeckViewContainer/loadRemoteButton"));
     readyStartButton->setShortcut(shortcuts.getSingleShortcut("DeckViewContainer/readyStartButton"));
-    sideboardLockButton->setShortcut(shortcuts.getSingleShortcut("DeckViewContainer/sideboardLockButton"));
 }
 
 void TabGame::refreshShortcuts()
@@ -199,24 +176,24 @@ void TabGame::refreshShortcuts()
             case 4: /* Discard */
                 temp->setShortcuts(shortcuts.getShortcut("Player/phase4"));
                 break;
-            case 5: /* Todo: Remove */
-                temp->setShortcuts(shortcuts.getShortcut("Player/phase5"));
-                break;
-            case 6: /* Todo: Remove */
-                temp->setShortcuts(shortcuts.getShortcut("Player/phase6"));
-                break;
-            case 7: /* Todo: Remove */
-                temp->setShortcuts(shortcuts.getShortcut("Player/phase7"));
-                break;
-            case 8: /* Todo: Remove */
-                temp->setShortcuts(shortcuts.getShortcut("Player/phase8"));
-                break;
-            case 9: /* Todo: Remove */
-                temp->setShortcuts(shortcuts.getShortcut("Player/phase9"));
-                break;
-            case 10: /* Todo: Remove */
-                temp->setShortcuts(shortcuts.getShortcut("Player/phase10"));
-                break;
+//             case 5: /* Todo: Remove */
+//                 temp->setShortcuts(shortcuts.getShortcut("Player/phase5"));
+//                 break;
+//             case 6: /* Todo: Remove */
+//                 temp->setShortcuts(shortcuts.getShortcut("Player/phase6"));
+//                 break;
+//             case 7: /* Todo: Remove */
+//                 temp->setShortcuts(shortcuts.getShortcut("Player/phase7"));
+//                 break;
+//             case 8: /* Todo: Remove */
+//                 temp->setShortcuts(shortcuts.getShortcut("Player/phase8"));
+//                 break;
+//             case 9: /* Todo: Remove */
+//                 temp->setShortcuts(shortcuts.getShortcut("Player/phase9"));
+//                 break;
+//             case 10: /* Todo: Remove */
+//                 temp->setShortcuts(shortcuts.getShortcut("Player/phase10"));
+//                 break;
             default:;
         }
     }
@@ -318,44 +295,16 @@ void DeckViewContainer::readyStart()
     parentGame->sendGameCommand(cmd, playerId);
 }
 
-void DeckViewContainer::sideboardLockButtonClicked()
-{
-    Command_SetSideboardLock cmd;
-    cmd.set_locked(sideboardLockButton->getState());
-
-    parentGame->sendGameCommand(cmd, playerId);
-}
-
-void DeckViewContainer::sideboardPlanChanged()
-{
-    Command_SetSideboardPlan cmd;
-    const QList<MoveCard_ToZone> &newPlan = deckView->getSideboardPlan();
-    for (const auto &i : newPlan)
-        cmd.add_move_list()->CopyFrom(i);
-    parentGame->sendGameCommand(cmd, playerId);
-}
-
 void DeckViewContainer::setReadyStart(bool ready)
 {
     readyStartButton->setState(ready);
-    deckView->setLocked(ready || !sideboardLockButton->getState());
-    sideboardLockButton->setEnabled(!readyStartButton->getState() && readyStartButton->isEnabled());
-}
-
-void DeckViewContainer::setSideboardLocked(bool locked)
-{
-    sideboardLockButton->setState(!locked);
-    deckView->setLocked(readyStartButton->getState() || !sideboardLockButton->getState());
-    if (locked)
-        deckView->resetSideboardPlan();
+    deckView->setLocked(ready);
 }
 
 void DeckViewContainer::setDeck(const DeckLoader &deck)
 {
     deckView->setDeck(deck);
     readyStartButton->setEnabled(true);
-    sideboardLockButton->setState(false);
-    sideboardLockButton->setEnabled(true);
 }
 
 TabGame::TabGame(TabSupervisor *_tabSupervisor, GameReplay *_replay)
@@ -1092,7 +1041,6 @@ void TabGame::eventGameStateChanged(const Event_GameStateChanged &event,
                     player->setDeck(newDeck);
                 }
                 deckViewContainer->setReadyStart(prop.ready_start());
-                deckViewContainer->setSideboardLocked(prop.sideboard_locked());
             }
         }
     }
@@ -1167,14 +1115,7 @@ void TabGame::eventPlayerPropertiesChanged(const Event_PlayerPropertiesChanged &
         }
         case GameEventContext::DECK_SELECT: {
             Context_DeckSelect deckSelect = context.GetExtension(Context_DeckSelect::ext);
-            messageLog->logDeckSelect(player, QString::fromStdString(deckSelect.deck_hash()),
-                                      deckSelect.sideboard_size());
-            break;
-        }
-        case GameEventContext::SET_SIDEBOARD_LOCK: {
-            if (player->getLocal())
-                deckViewContainers.value(player->getId())->setSideboardLocked(prop.sideboard_locked());
-            messageLog->logSetSideboardLock(player, prop.sideboard_locked());
+            messageLog->logDeckSelect(player, QString::fromStdString(deckSelect.deck_hash()), 0);
             break;
         }
         case GameEventContext::CONNECTION_STATE_CHANGED: {

@@ -24,29 +24,6 @@ class InnerDecklistNode;
 #define DECK_ZONE_CRYPT "crypt"
 #define DECK_ZONE_TOKENS "tokens"
 
-class SideboardPlan
-{
-private:
-    QString name;
-    QList<MoveCard_ToZone> moveList;
-
-public:
-    explicit SideboardPlan(const QString &_name = QString(),
-                           const QList<MoveCard_ToZone> &_moveList = QList<MoveCard_ToZone>());
-    bool readElement(QXmlStreamReader *xml);
-    void write(QXmlStreamWriter *xml);
-
-    QString getName() const
-    {
-        return name;
-    }
-    const QList<MoveCard_ToZone> &getMoveList() const
-    {
-        return moveList;
-    }
-    void setMoveList(const QList<MoveCard_ToZone> &_moveList);
-};
-
 enum DeckSortMethod
 {
     ByNumber,
@@ -175,7 +152,6 @@ class DeckList : public QObject
 private:
     QString name, comments;
     QString deckHash;
-    QMap<QString, SideboardPlan *> sideboardPlans;
     InnerDecklistNode *root;
     void getCardListHelper(InnerDecklistNode *node, QSet<QString> &result) const;
     InnerDecklistNode *getZoneObjFromName(const QString &zoneName);
@@ -218,10 +194,6 @@ public:
     }
     QList<MoveCard_ToZone> getCurrentSideboardPlan();
     void setCurrentSideboardPlan(const QList<MoveCard_ToZone> &plan);
-    const QMap<QString, SideboardPlan *> &getSideboardPlans() const
-    {
-        return sideboardPlans;
-    }
 
     bool readElement(QXmlStreamReader *xml);
     void write(QXmlStreamWriter *xml);
@@ -239,7 +211,7 @@ public:
     void cleanList();
     bool isEmpty() const
     {
-        return root->isEmpty() && name.isEmpty() && comments.isEmpty() && sideboardPlans.isEmpty();
+        return root->isEmpty() && name.isEmpty() && comments.isEmpty();
     }
     QStringList getCardList() const;
 

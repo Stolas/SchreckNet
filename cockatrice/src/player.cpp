@@ -390,8 +390,8 @@ Player::Player(const ServerInfo_User &info, int _id, bool _local, bool _judge, T
         moveRfgMenu->addAction(aMoveRfgToGrave);
 
 
-        aUntapAll = new QAction(this);
-        connect(aUntapAll, SIGNAL(triggered()), this, SLOT(actUntapAll()));
+        aUnlockAll = new QAction(this);
+        connect(aUnlockAll, SIGNAL(triggered()), this, SLOT(actUntapAll()));
 
         aRollDie = new QAction(this);
         connect(aRollDie, SIGNAL(triggered()), this, SLOT(actRollDie()));
@@ -409,7 +409,7 @@ Player::Player(const ServerInfo_User &info, int _id, bool _local, bool _judge, T
         playerMenu->addSeparator();
         countersMenu = playerMenu->addMenu(QString());
         playerMenu->addSeparator();
-        playerMenu->addAction(aUntapAll);
+        playerMenu->addAction(aUnlockAll);
         playerMenu->addSeparator();
         playerMenu->addAction(aRollDie);
         playerMenu->addSeparator();
@@ -777,7 +777,7 @@ void Player::retranslateUi()
         libraryMenu->setTitle(tr("&Library"));
         countersMenu->setTitle(tr("&Counters"));
 
-        aUntapAll->setText(tr("&Untap all permanents"));
+        aUnlockAll->setText(tr("&Untap all permanents"));
         aRollDie->setText(tr("R&oll die..."));
         aCreateToken->setText(tr("&Create token..."));
         aCreateAnotherToken->setText(tr("C&reate another token"));
@@ -930,9 +930,8 @@ void Player::setShortcutsActive()
     aDrawCryptCard->setShortcut(shortcuts.getSingleShortcut("Player/aDrawCryptCard"));
     aDrawCryptCards->setShortcut(shortcuts.getSingleShortcut("Player/aDrawCryptCards"));
     aUndoDraw->setShortcut(shortcuts.getSingleShortcut("Player/aUndoDraw"));
-    // aMulligan->setShortcut(shortcuts.getSingleShortcut("Player/aMulligan"));
     aShuffle->setShortcut(shortcuts.getSingleShortcut("Player/aShuffle"));
-    aUntapAll->setShortcut(shortcuts.getSingleShortcut("Player/aUntapAll"));
+    aUnlockAll->setShortcut(shortcuts.getSingleShortcut("Player/aUnlockAll"));
     aRollDie->setShortcut(shortcuts.getSingleShortcut("Player/aRollDie"));
     aCreateToken->setShortcut(shortcuts.getSingleShortcut("Player/aCreateToken"));
     aCreateAnotherToken->setShortcut(shortcuts.getSingleShortcut("Player/aCreateAnotherToken"));
@@ -973,7 +972,7 @@ void Player::setShortcutsInactive()
     aDrawCryptCards->setShortcut(QKeySequence());
     aUndoDraw->setShortcut(QKeySequence());
     aShuffle->setShortcut(QKeySequence());
-    aUntapAll->setShortcut(QKeySequence());
+    aUnlockAll->setShortcut(QKeySequence());
     aRollDie->setShortcut(QKeySequence());
     aCreateToken->setShortcut(QKeySequence());
     aCreateAnotherToken->setShortcut(QKeySequence());
@@ -1599,7 +1598,7 @@ void Player::actMoveBottomCardToPlayFaceDown()
     sendGameCommand(cmd);
 }
 
-void Player::actUntapAll()
+void Player::actUnlockAll()
 {
     Command_SetCardAttr cmd;
     cmd.set_zone("table");
@@ -2297,8 +2296,27 @@ void Player::eventDrawCards(const Event_DrawCards &event)
 
 void Player::eventDrawCryptCards(const Event_DrawCryptCards &event)
 {
-    /* Todo; */
     CardZone *_crypt = zones.value("crypt");
+    CardZone *_table = zones.value("table");
+
+    const int listSize = event.cards_size();
+    if (listSize) {
+        for (int i = 0; i < listSize; ++i) {
+            const ServerInfo_Card &cardInfo = event.cards(i);
+            CardItem *card = _crypt->takeCard(0, cardInfo.id());
+            card->setName(QString::fromStdString(cardInfo.name()));
+            card->setFaceDown(true);
+            _table->addCard(card, false, -1);
+        }
+    } else {
+        const int number = event.number();
+        for (int i = 0; i < number; ++i) {
+            _table->addCard(_crypt->takeCard(0, -1), false, -1);
+        }
+    }
+
+    _table->reorganizeCards();
+    _crypt->reorganizeCards();
 
     emit logDrawCryptCards(this, event.number(), _crypt->getCards().size() == 0);
 }
@@ -2429,6 +2447,9 @@ void Player::processGameEvent(GameEvent::GameEventType type, const GameEvent &ev
             break;
         case GameEvent::DRAW_CARDS:
             eventDrawCards(event.GetExtension(Event_DrawCards::ext));
+            break;
+        case GameEvent::DRAW_CRYPT_CARDS:
+            eventDrawCryptCards(event.GetExtension(Event_DrawCryptCards::ext));
             break;
         case GameEvent::REVEAL_CARDS:
             eventRevealCards(event.GetExtension(Event_RevealCards::ext));

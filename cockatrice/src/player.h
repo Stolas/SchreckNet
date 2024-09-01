@@ -150,7 +150,7 @@ signals:
     void sizeChanged();
     void playerCountChanged();
 public slots:
-    void actUntapAll();
+    void actUnlockAll();
     void actRollDie();
     void actCreateToken();
     void actCreateAnotherToken();
@@ -230,7 +230,7 @@ private:
         *aAlwaysRevealTopCard, *aAlwaysLookAtTopCard, *aOpenDeckInDeckEditor, *aMoveTopCardToGraveyard,
         *aMoveTopCardToExile, *aMoveTopCardsToGraveyard, *aMoveTopCardsToExile, *aMoveTopCardsUntil,
         *aMoveTopCardToBottom, *aViewGraveyard, *aViewRfg, *aDrawCard, *aDrawCards, *aDrawCryptCard, *aDrawCryptCards, *aUndoDraw,
-        *aMulligan, *aShuffle, *aMoveTopToPlay, *aMoveTopToPlayFaceDown, *aUntapAll, *aRollDie, *aCreateToken,
+        *aMulligan, *aShuffle, *aMoveTopToPlay, *aMoveTopToPlayFaceDown, *aUnlockAll, *aRollDie, *aCreateToken,
         *aCreateAnotherToken, *aCardMenu, *aMoveBottomToPlay, *aMoveBottomToPlayFaceDown, *aMoveBottomCardToTop,
         *aMoveBottomCardToGraveyard, *aMoveBottomCardToExile, *aMoveBottomCardsToGraveyard, *aMoveBottomCardsToExile,
         *aDrawBottomCard, *aDrawBottomCards;

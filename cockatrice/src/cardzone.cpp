@@ -78,21 +78,10 @@ QString CardZone::getTranslatedName(bool theirOwn, GrammaticalCase gc) const
             default:
                 return (theirOwn ? tr("their library", "nominative") : tr("%1's library", "nominative").arg(ownerName));
         }
-    else if (name == "grave")
-        return (theirOwn ? tr("their graveyard", "nominative") : tr("%1's graveyard", "nominative").arg(ownerName));
+    else if (name == "ashheap")
+        return (theirOwn ? tr("their ash heap", "nominative") : tr("%1's ash heap", "nominative").arg(ownerName));
     else if (name == "rfg")
         return (theirOwn ? tr("their exile", "nominative") : tr("%1's exile", "nominative").arg(ownerName));
-    else if (name == "sb")
-        switch (gc) {
-            case CaseLookAtZone:
-                return (theirOwn ? tr("their sideboard", "look at zone")
-                                 : tr("%1's sideboard", "look at zone").arg(ownerName));
-            case CaseNominative:
-                return (theirOwn ? tr("their sideboard", "nominative")
-                                 : tr("%1's sideboard", "nominative").arg(ownerName));
-            default:
-                break;
-        }
     return QString();
 }
 

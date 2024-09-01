@@ -142,18 +142,14 @@ static void setupParserRules()
     search["Format"] = [](const peg::SemanticValues &sv) -> QString {
         if (sv.length() == 1) {
             switch (tolower(sv.str()[0])) {
-                case 'm':
-                    return "modern";
                 case 's':
                     return "standard";
-                case 'v':
-                    return "vintage";
                 case 'l':
                     return "legacy";
-                case 'c':
-                    return "commander";
-                case 'p':
-                    return "pioneer";
+                case '5':
+                    return "v5";
+                case 'n':
+                    return "neonate";
                 default:
                     return "";
             }

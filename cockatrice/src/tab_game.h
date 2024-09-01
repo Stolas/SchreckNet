@@ -86,8 +86,8 @@ class DeckViewContainer : public QWidget
 {
     Q_OBJECT
 private:
-    QPushButton *loadLocalButton, *loadRemoteButton;
-    ToggleButton *readyStartButton, *sideboardLockButton;
+    QPushButton *loadLocalButton, *loadRemoteButton, *pickSeatButton;
+    ToggleButton *readyStartButton;
     DeckView *deckView;
     TabGame *parentGame;
     int playerId;
@@ -96,9 +96,6 @@ private slots:
     void loadRemoteDeck();
     void readyStart();
     void deckSelectFinished(const Response &r);
-    void sideboardPlanChanged();
-    void sideboardLockButtonClicked();
-    void updateSideboardLockButtonText();
     void refreshShortcuts();
 signals:
     void newCardAdded(AbstractCardItem *card);
@@ -109,7 +106,6 @@ public:
     void retranslateUi();
     void setButtonsVisible(bool _visible);
     void setReadyStart(bool ready);
-    void setSideboardLocked(bool locked);
     void setDeck(const DeckLoader &deck);
 };
 

@@ -103,13 +103,13 @@ void PhaseButton::triggerDoubleClickAction()
 PhasesToolbar::PhasesToolbar(QGraphicsItem *parent)
     : QGraphicsItem(parent), width(100), height(100), ySpacing(1), symbolSize(8)
 {
-    auto *aUntapAll = new QAction(this);
-    connect(aUntapAll, SIGNAL(triggered()), this, SLOT(actUntapAll()));
+    auto *aUnlockAll = new QAction(this);
+    connect(aUnlockAll, SIGNAL(triggered()), this, SLOT(actUntapAll()));
     auto *aDrawCard = new QAction(this);
     connect(aDrawCard, SIGNAL(triggered()), this, SLOT(actDrawCard()));
 
     /* Schrecknet Phases; Unlock, Master, Minion, Influence, Discard */
-    PhaseButton *untapButton = new PhaseButton("untap", this, aUntapAll);
+    PhaseButton *untapButton = new PhaseButton("untap", this, aUnlockAll);
     PhaseButton *masterButton = new PhaseButton("master", this);
     PhaseButton *minionButton = new PhaseButton("minion", this);
     PhaseButton *influenceButton = new PhaseButton("influence", this);

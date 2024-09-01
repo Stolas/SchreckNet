@@ -45,8 +45,6 @@ set(PROTO_FILES
     command_set_card_attr.proto
     command_set_card_counter.proto
     command_set_counter.proto
-    command_set_sideboard_plan.proto
-    command_set_sideboard_lock.proto
     command_shuffle.proto
     commands.proto
     command_undo_draw.proto
@@ -57,7 +55,6 @@ set(PROTO_FILES
     context_mulligan.proto
     context_ping_changed.proto
     context_ready_start.proto
-    context_set_sideboard_lock.proto
     context_undo_draw.proto
     event_add_to_list.proto
     event_attach_card.proto

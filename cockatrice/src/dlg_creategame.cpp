@@ -32,7 +32,7 @@ void DlgCreateGame::sharedCtor()
     maxPlayersEdit = new QSpinBox();
     maxPlayersEdit->setMinimum(1);
     maxPlayersEdit->setMaximum(100);
-    maxPlayersEdit->setValue(2);
+    maxPlayersEdit->setValue(5);
     maxPlayersLabel->setBuddy(maxPlayersEdit);
 
     QGridLayout *generalGrid = new QGridLayout;
