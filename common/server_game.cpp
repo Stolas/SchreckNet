@@ -46,8 +46,10 @@
 #include "server_room.h"
 
 #include <QDebug>
+#include <QMap>
 #include <QTimer>
 #include <google/protobuf/descriptor.h>
+#include <random>
 
 Server_Game::Server_Game(const ServerInfo_User &_creatorInfo,
                          int _gameId,
@@ -320,10 +322,62 @@ void Server_Game::doStartGameIfReady()
         if (!player->getReadyStart() && !player->getSpectator())
             return;
     }
-    for (Server_Player *player : players.values()) {
-        if (!player->getSpectator())
+
+    QMap<int, int> seating; /* SeatId, PlayerId */
+    for (auto playerId : players.keys()) {
+        Server_Player *player = players[playerId];
+        if (!player->getSpectator()) {
             player->setupZones();
+
+            /* Create preffered seat qmap */
+            int seat = 0;
+            if (assignedSeat.contains(playerId)) {
+                auto seat = assignedSeat[playerId];
+                if (seating.contains(seat)) {
+                    /* Someone else also wants this seat, randomize both */
+                    seating.remove(seat);
+                } else {
+                    /* New seating request, add it. */
+                    seating[seat] = playerId;
+                }
+            }
+        }
     }
+
+    /* Check if all seats are filled. */
+    auto seatCnt = players.size();
+
+    QList<int> nonSeatedPlayers;
+    /* Get list of non-seated players. */
+    for (auto player : players.keys()) {
+        if (seating.values().contains(player)) {
+            continue;
+        }
+        nonSeatedPlayers.append(player);
+    }
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(nonSeatedPlayers.begin(), nonSeatedPlayers.end(), g);
+
+    /* Get list of free seats */
+    for (int s = seatCnt; s; --s) {
+        if (!seating.contains(s)) {
+            /* This seat is empty. */
+            seating[s] = nonSeatedPlayers.takeFirst();
+        }
+    }
+    QMap<int, Server_Player *> newSeating;
+    for (int seat : seating.keys()) {
+        int playerId = seating[seat];
+        newSeating[seat] = players[playerId];
+        // newSeating[seat].playuer
+    }
+    players.swap(newSeating);
+
+    /* Todo; here all the seats should be assigned. */
+    qDebug() << seating;
+    __debugbreak;
 
     gameStarted = true;
     for (Server_Player *player : players.values()) {
@@ -353,6 +407,7 @@ void Server_Game::doStartGameIfReady()
     } else
         firstGameStarted = true;
 
+    /* Todo; change seat order here maybe?> */
     sendGameStateToPlayers();
 
     activePlayer = -1;

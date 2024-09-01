@@ -52,6 +52,7 @@ private:
     int hostId;
     ServerInfo_User *creatorInfo;
     QMap<int, Server_Player *> players;
+    QMap<int, int> assignedSeat;
     QSet<QString> allPlayersEver, allSpectatorsEver;
     bool gameStarted;
     bool gameClosed;

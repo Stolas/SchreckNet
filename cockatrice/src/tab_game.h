@@ -91,8 +91,10 @@ private:
     DeckView *deckView;
     TabGame *parentGame;
     int playerId;
+    // int seatPreference = -1;
 private slots:
     void loadLocalDeck();
+    void pickSeat();
     void loadRemoteDeck();
     void readyStart();
     void deckSelectFinished(const Response &r);

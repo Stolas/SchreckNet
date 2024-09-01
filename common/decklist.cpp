@@ -712,6 +712,7 @@ void DeckList::updateDeckHash()
                      (((quint64)(unsigned char)deckHashArray[2] << 16)) +
                      (((quint64)(unsigned char)deckHashArray[3]) << 8) + (quint64)(unsigned char)deckHashArray[4];
     deckHash = QString::number(number, 32).rightJustified(8, '0');
+   
 
     emit deckHashChanged();
 }

@@ -46,6 +46,7 @@ set(cockatrice_SOURCES
     src/dlg_load_deck_from_clipboard.cpp
     src/dlg_load_remote_deck.cpp
     src/dlg_manage_sets.cpp
+#     src/dlg_pickseat.cpp
     src/dlg_register.cpp
     src/dlg_settings.cpp
     src/dlg_tip_of_the_day.cpp

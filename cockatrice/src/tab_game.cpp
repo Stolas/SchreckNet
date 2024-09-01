@@ -101,10 +101,12 @@ DeckViewContainer::DeckViewContainer(int _playerId, TabGame *parent)
 {
     loadLocalButton = new QPushButton;
     loadRemoteButton = new QPushButton;
+    pickSeatButton = new QPushButton;
     readyStartButton = new ToggleButton;
     readyStartButton->setEnabled(false);
 
     connect(loadLocalButton, SIGNAL(clicked()), this, SLOT(loadLocalDeck()));
+    connect(pickSeatButton, SIGNAL(clicked()), this, SLOT(pickSeat()));
     connect(readyStartButton, SIGNAL(clicked()), this, SLOT(readyStart()));
 
     if (parentGame->getIsLocalGame()) {
@@ -116,6 +118,7 @@ DeckViewContainer::DeckViewContainer(int _playerId, TabGame *parent)
     auto *buttonHBox = new QHBoxLayout;
     buttonHBox->addWidget(loadLocalButton);
     buttonHBox->addWidget(loadRemoteButton);
+    buttonHBox->addWidget(pickSeatButton);
     buttonHBox->addWidget(readyStartButton);
     buttonHBox->setContentsMargins(0, 0, 0, 0);
     buttonHBox->addStretch();
@@ -137,6 +140,7 @@ void DeckViewContainer::retranslateUi()
 {
     loadLocalButton->setText(tr("Load deck..."));
     loadRemoteButton->setText(tr("Load remote deck..."));
+    pickSeatButton->setText(tr("Pick seat..."));
     readyStartButton->setText(tr("Ready to start"));
 }
 
@@ -144,6 +148,7 @@ void DeckViewContainer::setButtonsVisible(bool _visible)
 {
     loadLocalButton->setVisible(_visible);
     loadRemoteButton->setVisible(_visible);
+    pickSeatButton->setVisible(_visible);
     readyStartButton->setVisible(_visible);
 }
 
@@ -152,6 +157,7 @@ void DeckViewContainer::refreshShortcuts()
     ShortcutsSettings &shortcuts = SettingsCache::instance().shortcuts();
     loadLocalButton->setShortcut(shortcuts.getSingleShortcut("DeckViewContainer/loadLocalButton"));
     loadRemoteButton->setShortcut(shortcuts.getSingleShortcut("DeckViewContainer/loadRemoteButton"));
+    pickSeatButton->setShortcut(shortcuts.getSingleShortcut("DeckViewContainer/pickSeatButton"));
     readyStartButton->setShortcut(shortcuts.getSingleShortcut("DeckViewContainer/readyStartButton"));
 }
 
@@ -265,6 +271,14 @@ void DeckViewContainer::loadLocalDeck()
     connect(pend, SIGNAL(finished(Response, CommandContainer, QVariant)), this,
             SLOT(deckSelectFinished(const Response &)));
     parentGame->sendGameCommand(pend, playerId);
+}
+
+void DeckViewContainer::pickSeat()
+{
+    // Todo;
+    // playerId = 10;
+    // seatPreference = 3;
+    __debugbreak();
 }
 
 void DeckViewContainer::loadRemoteDeck()
@@ -950,8 +964,25 @@ void TabGame::startGame(bool _resuming)
 
     if (!_resuming) {
         QMapIterator<int, Player *> playerIterator(players);
-        while (playerIterator.hasNext())
-            playerIterator.next().value()->setGameStarted();
+        // /* If random seating */
+        // auto playerList = players.values();
+        // std::random_device rd;
+        // std::mt19937 g(rd());
+        // std::shuffle(playerList.begin(), playerList.end(), g);
+
+        // while (!playerList.isEmpty()) {
+        //     auto player = playerList.takeFirst();
+        //     qDebug() << QString("Player %1, was seat %2 is now seat %3").arg(player->getName()).arg(player->getZoneId()).arg(playerList.size()+1);
+        //     player->setZoneId(playerList.size()+1);
+        // }
+
+        // // Todo; assign seats.
+        while (playerIterator.hasNext()) {
+            auto player = playerIterator.next().value();
+            
+            // player->setSeat();
+            player->setGameStarted();
+        }
     }
 
     playerListWidget->setGameStarted(true, resuming);
