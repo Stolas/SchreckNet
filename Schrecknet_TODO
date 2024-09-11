@@ -2,18 +2,25 @@ Roadmap
 =============
 
 # Alpha 0.2
-    * Draw Crypt Card, put in a good location.
+    * Draw Crypt Card, put in a good location. <-- Essential
+    * Double click Crypt to draw crypt.
+    * Draw Crypt Card must _always_ be face down.
     * Randomize Seating is off-by-one (swap).
     * Show the order of play areas in the correct way.
     * Fix 'Pick Seat' button.
     * Validate all Judge actions.
     * Draw order of table correct. [Fixed]
+    * Graphics Glitch Playmat
+    * Influence command needs to take pool.
+    * Card size problem.
+    * Maybe 1 table?
 
 # Beta 0.5
     * Finish Randomize Seating
     * Pause and resume clock
     * Cryptcard back go back to green.
     * Deck editor filters.
+    * VDB, VTES Decks, and Amaranth Intergration
 
 # Release 1.0
     * Add support for 'joining after dropping'.
